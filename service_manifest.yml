@@ -49,6 +49,6 @@ config:
 
 docker_config:
   allow_internet_access: true
-  image: to fill
+  image: ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.3
   cpu_cores: 1
   ram_mb: 1024
