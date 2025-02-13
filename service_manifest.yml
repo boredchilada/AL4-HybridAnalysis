@@ -1,0 +1,54 @@
+name: HybridAnalysis
+version: 4.5.0.3
+description: This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities
+
+accepts: .*
+rejects: empty|metadata/.*
+
+stage: CORE
+category: Dynamic Analysis
+
+file_required: true
+timeout: 600  
+disable_cache: false
+
+enabled: true
+
+heuristics:
+  - heur_id: 1
+    name: High Threat Score
+    description: The sample received a high threat score from Hybrid Analysis
+    filetype: "*"
+    score: 1000
+    attack_id: T1204  
+
+  - heur_id: 2
+    name: Malicious Behavior Detected
+    description: The sample exhibited malicious behavior during analysis
+    filetype: "*"
+    score: 1000
+    attack_id: T1204
+
+  - heur_id: 3
+    name: Suspicious Behavior Detected
+    description: The sample exhibited suspicious behavior during analysis
+    filetype: "*"
+    score: 500
+    attack_id: T1204
+
+config:
+  api_key:
+    type: str
+    value: null
+    description: API key for Hybrid Analysis
+
+  base_url:
+    type: str
+    value: "https://www.hybrid-analysis.com/api/v2"
+    description: Base URL for Hybrid Analysis API
+
+docker_config:
+  allow_internet_access: true
+  image: to fill
+  cpu_cores: 1
+  ram_mb: 1024
