@@ -1,5 +1,9 @@
 # Hybrid Analysis Service for Assemblyline 4
 
+```
+docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.3
+```
+
 ## Description
 This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities for Assemblyline 4. It submits files to Hybrid Analysis for dynamic analysis and retrieves detailed behavioral analysis results.
 
