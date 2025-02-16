@@ -11,11 +11,11 @@ This service integrates with Hybrid Analysis to provide additional threat intell
 - Automated file submission to Hybrid Analysis
 - Comprehensive analysis results including:
   - Overall verdict and threat scoring
-  - Behavioral analysis with MITRE ATT&CK mapping
-  - Process activity monitoring
-  - Network communications analysis
-  - File system activity tracking
-  - Registry modifications monitoring
+  - Behavioral analysis with MITRE ATT&CK mapping (WIP)
+  - Process activity monitoring (WIP)
+  - Network communications analysis (WIP)
+  - File system activity tracking (WIP)
+  - Registry modifications monitoring (WIP)
 - Detailed logging for troubleshooting
 - Integration with Assemblyline's heuristics system
 
@@ -69,7 +69,7 @@ base_url:
   description: Base URL for Hybrid Analysis API
 ```
 
-## Heuristics
+## Heuristics (WIP)
 The service implements three heuristics:
 
 1. High Threat Score (1000)
@@ -99,11 +99,11 @@ ram_mb: 1024
 ## Results (SHOULD SHOW)
 The service provides results in several sections:
 - Analysis Summary (verdict, threat score, malware family)
-- Behavioral Analysis (suspicious/malicious behaviors with MITRE ATT&CK mapping)
+- Behavioral Analysis (suspicious/malicious behaviors with MITRE ATT&CK mapping) (WIP)
 - Process Activity (executed processes and command lines)
-- Network Activity (connections, domains, IPs)
-- File Activity (file system modifications)
-- Registry Activity (registry modifications)
+- Network Activity (connections, domains, IPs) (WIP)
+- File Activity (file system modifications) (WIP)
+- Registry Activity (registry modifications) 
 
 ## Dependencies
 - Python 3
