@@ -23,7 +23,13 @@ class HybridAnalysis(ServiceBase):
         self.setup_logging()
 
     def setup_logging(self):
-        """Setup detailed logging to file"""
+        """Setup logging to file based on configuration"""
+        debug_enabled = self.config.get("enable_debug_logging", {}).get("value", False)
+        
+        if not debug_enabled:
+            self.debug_log = self.log
+            return
+            
         log_path = os.path.join(tempfile.gettempdir(), 'hybrid_analysis.log')
         
         try:
