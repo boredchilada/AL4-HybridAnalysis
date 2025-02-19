@@ -1,7 +1,7 @@
 # Hybrid Analysis Service for Assemblyline 4
 
 ```
-docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.3
+docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.33
 ```
 
 ## Description
@@ -11,22 +11,49 @@ This service integrates with Hybrid Analysis to provide additional threat intell
 - Automated file submission to Hybrid Analysis
 - Comprehensive analysis results including:
   - Overall verdict and threat scoring
-  - Behavioral analysis with MITRE ATT&CK mapping (WIP)
-  - Process activity monitoring (WIP)
-  - Network communications analysis (WIP)
-  - File system activity tracking (WIP)
-  - Registry modifications monitoring (WIP)
+  - Behavioral analysis with MITRE ATT&CK mapping
+  - Process activity monitoring
+  - Network communications analysis
+  - File system activity tracking
+  - Registry modifications monitoring
 - Detailed logging for troubleshooting
 - Integration with Assemblyline's heuristics system
+
+## Submission Parameters
+The service supports the following submission parameters:
+
+- **force_resubmit** (bool, default: false)
+  - Force resubmission even if previous analysis exists
+
+- **environment_id** (list, default: "160")
+  - Analysis environment selection
+  - Available options:
+    - "160": Windows 10 64 bit
+    - "140": Windows 7 64 bit
+    - "120": Windows 7 32 bit
+    - "110": Windows XP 32 bit
+    - "100": Windows 7 Smart Mode
+    - "400": Android Static Analysis
+    - "310": Linux 64 bit
+    - "200": macOS 10
+
+- **experimental_anti_evasion** (bool, default: false)
+  - Enable experimental anti-evasion techniques
+
+- **network_settings** (list, default: "default")
+  - Network configuration for analysis
+  - Available options:
+    - "default": Standard network access
+    - "tor": Route traffic through TOR
+    - "simulated": Simulate network services
 
 ## Logging System
 The service implements a comprehensive logging system with the following features:
 
-### Log Configuration (INFO Only!)
+### Log Configuration
 - Dual logging output:
   - File logging: Detailed logs stored in the system's temp directory (`hybrid_analysis.log`)
   - Console logging: Real-time output to stdout for monitoring
-- Debug level logging for maximum visibility *(removed, WIP)*
 - Structured log format: `timestamp - log_level - message`
 
 ### Logged Information
@@ -36,14 +63,6 @@ The service implements a comprehensive logging system with the following feature
 - Analysis status and polling updates
 - Result processing and section creation
 - Error tracking and troubleshooting data
-
-### Debug Logging
-The debug log captures detailed information about:
-- API request/response content
-- File processing steps
-- Analysis verdicts and threat scores
-- Section creation and tag addition
-- Error states and exception details
 
 ### Log Format Example
 ```
@@ -67,21 +86,46 @@ base_url:
   type: str
   value: "https://www.hybrid-analysis.com/api/v2"  # Default API endpoint
   description: Base URL for Hybrid Analysis API
+
+enable_debug_logging:
+  type: bool
+  value: false
+  description: Enable detailed debug logging to file and stdout
 ```
 
-## Heuristics (WIP)
-The service implements three heuristics:
+## Heuristics
+The service implements eight heuristics:
 
-1. High Threat Score (1000)
-   - Triggers when sample receives a high threat score
+1. Critical Threat Score (1000)
+   - Triggers when sample receives a critical threat score (>=85)
    - MITRE ATT&CK: T1204 (User Execution)
 
-2. Malicious Behavior Detected (1000)
-   - Triggers when malicious behavior is observed
+2. High Threat Score (750)
+   - Triggers when sample receives a high threat score (70-84)
    - MITRE ATT&CK: T1204 (User Execution)
 
-3. Suspicious Behavior Detected (500)
-   - Triggers when suspicious behavior is observed
+3. High AV Detection Rate (1000)
+   - Triggers when sample is detected by multiple AV engines (>30)
+   - MITRE ATT&CK: T1204 (User Execution)
+
+4. Malicious Memory Analysis (1000)
+   - Triggers when CrowdStrike AI detects malicious behavior in process memory
+   - MITRE ATT&CK: T1055 (Process Injection)
+
+5. Suspicious Memory Analysis (500)
+   - Triggers when CrowdStrike AI detects suspicious behavior in process memory
+   - MITRE ATT&CK: T1055 (Process Injection)
+
+6. Multiple MITRE ATT&CK Techniques (750)
+   - Triggers when multiple MITRE ATT&CK techniques with malicious indicators are detected
+   - MITRE ATT&CK: T1204 (User Execution)
+
+7. High Signature Count (500)
+   - Triggers when sample has a large number of behavioral signatures (>100)
+   - MITRE ATT&CK: T1204 (User Execution)
+
+8. Known Malware Family (1000)
+   - Triggers when sample is identified as belonging to a known malware family
    - MITRE ATT&CK: T1204 (User Execution)
 
 ## Docker Configuration
@@ -95,15 +139,18 @@ ram_mb: 1024
 
 1. Copy service_manifest.yml into AL4
 
-
-## Results (SHOULD SHOW)
+## Results
 The service provides results in several sections:
 - Analysis Summary (verdict, threat score, malware family)
-- Behavioral Analysis (suspicious/malicious behaviors with MITRE ATT&CK mapping) (WIP)
-- Process Activity (executed processes and command lines)
-- Network Activity (connections, domains, IPs) (WIP)
-- File Activity (file system modifications) (WIP)
-- Registry Activity (registry modifications) 
+- Submission History
+- File Information
+- Scanner Results
+- MITRE ATT&CK Techniques
+- Signature Statistics
+- Behavioral Analysis
+- CrowdStrike Memory Analysis
+- Process Activity
+- Network Activity
 
 ## Dependencies
 - Python 3
