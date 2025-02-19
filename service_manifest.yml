@@ -1,5 +1,5 @@
-name: HybridAnalysis
-version: 4.5.0.31
+name: HybridAnalysis1
+version: 4.5.0.33
 description: This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities
 
 accepts: .*
@@ -13,27 +13,83 @@ timeout: 600
 disable_cache: false
 
 enabled: true
+is_external: true
+
+submission_params:
+  - name: force_resubmit
+    type: bool
+    value: false
+    default: false
+  - name: environment_id
+    type: list
+    value: "160"
+    default: "160"
+    list: ["160", "140", "120", "110", "100", "400", "310", "200"]
+  - name: experimental_anti_evasion
+    type: bool
+    value: false
+    default: false
+  - name: network_settings
+    type: list
+    value: "default"
+    default: "default"
+    list: ["default", "tor", "simulated"]
 
 heuristics:
   - heur_id: 1
-    name: High Threat Score
-    description: The sample received a high threat score from Hybrid Analysis
-    filetype: "*"
-    score: 1000
-    attack_id: T1204  
-
-  - heur_id: 2
-    name: Malicious Behavior Detected
-    description: The sample exhibited malicious behavior during analysis
+    name: Critical Threat Score
+    description: The sample received a critical threat score (>=85) from Hybrid Analysis
     filetype: "*"
     score: 1000
     attack_id: T1204
 
+  - heur_id: 2
+    name: High Threat Score
+    description: The sample received a high threat score (70-84) from Hybrid Analysis
+    filetype: "*"
+    score: 750
+    attack_id: T1204
+
   - heur_id: 3
-    name: Suspicious Behavior Detected
-    description: The sample exhibited suspicious behavior during analysis
+    name: High AV Detection Rate
+    description: The sample was detected as malicious by multiple antivirus engines (>30)
+    filetype: "*"
+    score: 1000
+    attack_id: T1204
+
+  - heur_id: 4
+    name: Malicious Memory Analysis
+    description: CrowdStrike AI detected malicious behavior in process memory
+    filetype: "*"
+    score: 1000
+    attack_id: T1055
+
+  - heur_id: 5
+    name: Suspicious Memory Analysis
+    description: CrowdStrike AI detected suspicious behavior in process memory
     filetype: "*"
     score: 500
+    attack_id: T1055
+
+  - heur_id: 6
+    name: Multiple MITRE ATT&CK Techniques
+    description: The sample triggered multiple MITRE ATT&CK techniques with malicious indicators
+    filetype: "*"
+    score: 750
+    attack_id: T1204
+
+  - heur_id: 7
+    name: High Signature Count
+    description: The sample triggered a large number of behavioral signatures (>100)
+    filetype: "*"
+    score: 500
+    attack_id: T1204
+
+  - heur_id: 8
+    name: Known Malware Family
+    description: The sample was identified as belonging to a known malware family
+    filetype: "*"
+    score: 1000
     attack_id: T1204
 
 config:
@@ -54,6 +110,6 @@ config:
 
 docker_config:
   allow_internet_access: true
-  image: ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.31
+  image: cr.irrh.ca/boredenchilada/al4-hybridanalysis:4.5.0.33
   cpu_cores: 1
   ram_mb: 1024

@@ -2,6 +2,7 @@ FROM cccs/assemblyline-v4-service-base:stable
 
 # Set service path
 ENV SERVICE_PATH hybrid_analysis.HybridAnalysis
+ENV PYTHONPATH /opt/al_service
 
 # Install dependencies
 COPY requirements.txt requirements.txt

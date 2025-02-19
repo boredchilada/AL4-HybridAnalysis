@@ -22,11 +22,11 @@ This service integrates with Hybrid Analysis to provide additional threat intell
 ## Logging System
 The service implements a comprehensive logging system with the following features:
 
-### Log Configuration
+### Log Configuration (INFO Only!)
 - Dual logging output:
   - File logging: Detailed logs stored in the system's temp directory (`hybrid_analysis.log`)
   - Console logging: Real-time output to stdout for monitoring
-- Debug level logging for maximum visibility
+- Debug level logging for maximum visibility *(removed, WIP)*
 - Structured log format: `timestamp - log_level - message`
 
 ### Logged Information
