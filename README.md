@@ -1,7 +1,7 @@
 # Hybrid Analysis Service for Assemblyline 4
 
 ```
-docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.3
+docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.33
 ```
 
 ## Description
