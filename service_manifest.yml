@@ -110,6 +110,6 @@ config:
 
 docker_config:
   allow_internet_access: true
-  image: cr.irrh.ca/boredenchilada/al4-hybridanalysis:4.5.0.33
+  image: ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.33
   cpu_cores: 1
   ram_mb: 1024
