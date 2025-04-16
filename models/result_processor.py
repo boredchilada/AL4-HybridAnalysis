@@ -53,11 +53,20 @@ class ResultProcessor:
             highest_threat_level = max(highest_threat_level, SUSPICIOUS)
 
         # Add Report Link (Assuming 'report_url' key exists in the overview)
-        report_url = overview.get('report_url') # Adjust key if necessary based on actual API response
+        # Check common keys for report URL
+        report_url = overview.get('report_url') or overview.get('analysis_url') or overview.get('url')
         if report_url:
             summary_section.add_line(f"Full Report URL: {report_url}")
             # Optionally tag the URL
             summary_section.add_tag('network.static.uri', report_url)
+        else:
+            # Attempt to find URL in submissions if not directly in overview
+            submissions = overview.get('submissions', [])
+            if submissions and submissions[0].get('url'):
+                 report_url = submissions[0].get('url')
+                 summary_section.add_line(f"Submission URL (may be report): {report_url}")
+                 summary_section.add_tag('network.static.uri', report_url)
+
 
         # Threat scoring
         threat_score = overview.get('threat_score')
@@ -323,15 +332,18 @@ class ResultProcessor:
 
         # Add rows and sections only if they have content
         if mal_rows:
-            malicious_section.add_rows(mal_rows)
+            for r in mal_rows:
+                malicious_section.add_row(r)
             main_section.add_subsection(malicious_section)
             self.log.info(f"Added {len(mal_rows)} malicious behavior indicators.")
         if sus_rows:
-            suspicious_section.add_rows(sus_rows)
+            for r in sus_rows:
+                suspicious_section.add_row(r)
             main_section.add_subsection(suspicious_section)
             self.log.info(f"Added {len(sus_rows)} suspicious behavior indicators.")
         if inf_rows:
-            informative_section.add_rows(inf_rows)
+            for r in inf_rows:
+                informative_section.add_row(r)
             main_section.add_subsection(informative_section)
             self.log.info(f"Added {len(inf_rows)} informative behavior indicators.")
 
