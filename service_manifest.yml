@@ -1,5 +1,5 @@
 name: HybridAnalysis
-version: 4.5.0.33
+version: 4.5.0.34
 description: This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities
 
 accepts: .*
@@ -9,7 +9,7 @@ stage: CORE
 category: Dynamic Analysis
 
 file_required: true
-timeout: 600  
+timeout: 600
 disable_cache: false
 
 enabled: true
@@ -37,60 +37,74 @@ submission_params:
 
 heuristics:
   - heur_id: 1
-    name: Critical Threat Score
+    name: Critical Threat Score (Deprecated)
     description: The sample received a critical threat score (>=85) from Hybrid Analysis
     filetype: "*"
     score: 1000
     attack_id: T1204
 
   - heur_id: 2
-    name: High Threat Score
+    name: High Threat Score (Deprecated)
     description: The sample received a high threat score (70-84) from Hybrid Analysis
     filetype: "*"
     score: 750
     attack_id: T1204
 
   - heur_id: 3
-    name: High AV Detection Rate
+    name: High AV Detection Rate (Deprecated)
     description: The sample was detected as malicious by multiple antivirus engines (>30)
     filetype: "*"
     score: 1000
     attack_id: T1204
 
   - heur_id: 4
-    name: Malicious Memory Analysis
+    name: Malicious Memory Analysis (Deprecated)
     description: CrowdStrike AI detected malicious behavior in process memory
     filetype: "*"
     score: 1000
     attack_id: T1055
 
   - heur_id: 5
-    name: Suspicious Memory Analysis
+    name: Suspicious Memory Analysis (Deprecated)
     description: CrowdStrike AI detected suspicious behavior in process memory
     filetype: "*"
     score: 500
     attack_id: T1055
 
   - heur_id: 6
-    name: Multiple MITRE ATT&CK Techniques
+    name: Multiple MITRE ATT&CK Techniques (Deprecated)
     description: The sample triggered multiple MITRE ATT&CK techniques with malicious indicators
     filetype: "*"
     score: 750
     attack_id: T1204
 
   - heur_id: 7
-    name: High Signature Count
+    name: High Signature Count (Deprecated)
     description: The sample triggered a large number of behavioral signatures (>100)
     filetype: "*"
     score: 500
     attack_id: T1204
 
   - heur_id: 8
-    name: Known Malware Family
+    name: Known Malware Family (Deprecated)
     description: The sample was identified as belonging to a known malware family
     filetype: "*"
     score: 1000
     attack_id: T1204
+
+  - heur_id: 9
+    name: Overall Malicious Verdict
+    description: Hybrid Analysis determined the overall verdict for the sample to be malicious based on combined indicators.
+    filetype: "*"
+    score: 1000
+    attack_id: T1204 # Generic Execution ID, adjust if a more specific one applies
+
+  - heur_id: 10
+    name: Overall Suspicious Verdict
+    description: Hybrid Analysis determined the overall verdict for the sample to be suspicious based on combined indicators.
+    filetype: "*"
+    score: 500
+    attack_id: T1204 # Generic Execution ID, adjust if a more specific one applies
 
 config:
   api_key:
@@ -102,7 +116,7 @@ config:
     type: str
     value: "https://www.hybrid-analysis.com/api/v2"
     description: Base URL for Hybrid Analysis API
-    
+
   enable_debug_logging:
     type: bool
     value: false
@@ -110,6 +124,6 @@ config:
 
 docker_config:
   allow_internet_access: true
-  image: ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.33
+  image: cr.irrh.ca/boredenchilada/al4-hybridanalysis:4.5.0.34
   cpu_cores: 1
   ram_mb: 1024
