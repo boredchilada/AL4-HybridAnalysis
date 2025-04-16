@@ -1,93 +1,81 @@
 name: Build and Push Docker Image to Gitea Registry
 
-# This workflow is intended for Gitea Actions.
+# Adapted from a working Gitea Actions workflow
 
 on:
   push:
-    branches: [ main ] # Trigger on push to main branch in Gitea
+    branches:
+      - main
+    tags:
+      - 'v*' # Also trigger on version tags
 
 env:
+  # Define your Gitea registry and image name for this service
   GITEA_REGISTRY: cr.irrh.ca
-  GITEA_IMAGE_NAME: boredenchilada/al4-hybridanalysis
+  GITEA_IMAGE_NAME: boredenchilada/al4-hybridanalysis # Updated image name
 
 jobs:
-  build-and-push-gitea:
+  build-and-push:
     # Use the label that matches your Gitea runner
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository using actions/checkout with explicit context
-      # This attempts to use Gitea's context variables directly.
-      - name: Checkout repository
+      - name: Checkout code
+        # Using v4 as it's the latest stable, but v3 worked in your example
         uses: actions/checkout@v4
-        with:
-          # Use Gitea context variables for repository URL and commit SHA
-          repository: ${{ gitea.repo.full_name }} # e.g., user/repo
-          ref: ${{ gitea.sha }}
-          # You might need token if repo is private and runner doesn't have access
-          # token: ${{ secrets.ACCESS_TOKEN }} # A Gitea PAT if needed
 
-      # Step 2: Get version from service_manifest.yml (using shell)
-      - name: Get version from service_manifest.yml
-        id: get_version # ID to reference the output later
+      - name: Verify file structure
         run: |
-          echo "Getting version..."
+          echo "Verifying file structure in $(pwd)"
+          ls -la
+          echo "SERVICE_MANIFEST contents:"
+          cat service_manifest.yml || echo "service_manifest.yml not found!"
+
+      - name: Set up Docker Buildx
+        # Using v3 as it's the latest stable, but v2 worked in your example
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract service version from manifest
+        id: extract_version
+        run: |
           if [ ! -f service_manifest.yml ]; then
             echo "Error: service_manifest.yml not found!"
-            ls -la $(pwd) # List files for debugging
             exit 1
           fi
-          VERSION=$(grep "^version:" service_manifest.yml | cut -d' ' -f2)
+          VERSION=$(grep "^version:" service_manifest.yml | cut -d ' ' -f 2)
           if [ -z "$VERSION" ]; then
-            echo "Error: Could not extract version from service_manifest.yml"
+            echo "Error: Could not extract version."
             exit 1
           fi
+          # Set environment variable for subsequent steps using GITHUB_ENV
+          echo "SERVICE_TAG=$VERSION" >> $GITHUB_ENV
           echo "Extracted version: $VERSION"
-          # Gitea Actions output syntax:
+          # Set output for potential use (though GITHUB_ENV is often preferred now)
           echo "::set-output name=version::$VERSION"
 
-      # Step 3: Log in to the Gitea Container registry (using docker login)
-      - name: Log in to Gitea Container registry
-        run: |
-          echo "Logging into Gitea Registry: ${{ env.GITEA_REGISTRY }}"
-          if ! command -v docker &> /dev/null; then
-              echo "Error: docker command not found. Cannot log in."
-              exit 1
-          fi
-          # Requires GITEAUSERNAME and GITEAPASSWORD secrets in Gitea repository/org settings
-          if [ -z "${{ secrets.GITEAUSERNAME }}" ] || [ -z "${{ secrets.GITEAPASSWORD }}" ]; then
-             echo "Error: GITEAUSERNAME or GITEAPASSWORD secrets not set in Gitea."
-             exit 1
-          fi
-          echo ${{ secrets.GITEAPASSWORD }} | docker login ${{ env.GITEA_REGISTRY }} -u ${{ secrets.GITEAUSERNAME }} --password-stdin
-          if [ $? -ne 0 ]; then echo "Docker login failed!"; exit 1; fi
-          echo "Login successful."
 
-      # Step 4: Build and push Docker image (using docker build/push)
-      - name: Build and push Docker image to Gitea
-        run: |
-          if ! command -v docker &> /dev/null; then
-              echo "Error: docker command not found. Cannot build/push."
-              exit 1
-          fi
-          # Construct the image tag using the version from the previous step
-          IMAGE_TAG="${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:${{ steps.get_version.outputs.version }}"
-          echo "Building image: $IMAGE_TAG"
-          docker build -t "$IMAGE_TAG" .
-          if [ $? -ne 0 ]; then echo "Docker build failed!"; exit 1; fi
-          echo "Pushing image: $IMAGE_TAG"
-          docker push "$IMAGE_TAG"
-          if [ $? -ne 0 ]; then echo "Docker push failed!"; exit 1; fi
-          echo "Push complete."
+      - name: Login to Container Registry
+        # Using v3 as it's the latest stable, but v2 worked in your example
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GITEA_REGISTRY }}
+          username: ${{ secrets.GITEAUSERNAME }}
+          # Using GITEATOKEN based on your working example
+          password: ${{ secrets.GITEAPASSWORD }}
 
-      # Step 5: Log out (Good practice)
-      - name: Log out from Gitea Container registry
-        # Run even if previous steps fail, but only if docker exists
+      - name: Build and push
+        # Using v5 as it's the latest stable, but v4 worked in your example
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # Just use the version tag for this service
+          tags: ${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:${{ env.SERVICE_TAG }}
+          # Adapted cache reference for this service
+          cache-from: type=registry,ref=${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:buildcache
+          # cache-to: type=registry,ref=${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:buildcache,mode=max # Optional: enable cache writing if desired
+
+      # Optional: Logout step
+      - name: Logout from Container Registry
         if: always()
-        run: |
-          if command -v docker &> /dev/null; then
-            echo "Logging out from Gitea Registry."
-            docker logout ${{ env.GITEA_REGISTRY }}
-          else
-            echo "Skipping docker logout as docker command was not found."
-          fi
+        run: docker logout ${{ env.GITEA_REGISTRY }}
