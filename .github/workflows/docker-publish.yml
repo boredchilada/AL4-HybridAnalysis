@@ -1,51 +1,81 @@
-name: Docker Build and Publish
+name: Build and Push Docker Image to Gitea Registry
+
+# Adapted from a working Gitea Actions workflow
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+    tags:
+      - 'v*' # Also trigger on version tags
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Define your Gitea registry and image name for this service
+  GITEA_REGISTRY: cr.irrh.ca
+  GITEA_IMAGE_NAME: boredenchilada/al4-hybridanalysis # Updated image name
 
 jobs:
   build-and-push:
+    # Use the label that matches your Gitea runner
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        # Using v4 as it's the latest stable, but v3 worked in your example
+        uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get version from service_manifest.yml
-        id: get_version
+      - name: Verify file structure
         run: |
-          VERSION=$(grep "^version:" service_manifest.yml | cut -d' ' -f2)
+          echo "Verifying file structure in $(pwd)"
+          ls -la
+          echo "SERVICE_MANIFEST contents:"
+          cat service_manifest.yml || echo "service_manifest.yml not found!"
+
+      - name: Set up Docker Buildx
+        # Using v3 as it's the latest stable, but v2 worked in your example
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract service version from manifest
+        id: extract_version
+        run: |
+          if [ ! -f service_manifest.yml ]; then
+            echo "Error: service_manifest.yml not found!"
+            exit 1
+          fi
+          VERSION=$(grep "^version:" service_manifest.yml | cut -d ' ' -f 2)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version."
+            exit 1
+          fi
+          # Set environment variable for subsequent steps using GITHUB_ENV
+          echo "SERVICE_TAG=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+          # Set output for potential use (though GITHUB_ENV is often preferred now)
           echo "::set-output name=version::$VERSION"
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=${{ steps.get_version.outputs.version }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+      - name: Login to Container Registry
+        # Using v3 as it's the latest stable, but v2 worked in your example
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GITEA_REGISTRY }}
+          username: ${{ secrets.GITEAUSERNAME }}
+          # Using GITEATOKEN based on your working example
+          password: ${{ secrets.GITEAPASSWORD }}
+
+      - name: Build and push
+        # Using v5 as it's the latest stable, but v4 worked in your example
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          # Just use the version tag for this service
+          tags: ${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:${{ env.SERVICE_TAG }}
+          # Adapted cache reference for this service
+          cache-from: type=registry,ref=${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:buildcache
+          # cache-to: type=registry,ref=${{ env.GITEA_REGISTRY }}/${{ env.GITEA_IMAGE_NAME }}:buildcache,mode=max # Optional: enable cache writing if desired
+
+      # Optional: Logout step
+      - name: Logout from Container Registry
+        if: always()
+        run: docker logout ${{ env.GITEA_REGISTRY }}
