@@ -1,4 +1,4 @@
-from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow, ResultKeyValueSection
+from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow, ResultKeyValueSection, ResultURLSection
 
 class ResultProcessor:
     def __init__(self, logger):
@@ -54,11 +54,14 @@ class ResultProcessor:
         if overview.get('environment_description'):
             summary_section.set_item("Analysis Environment", overview['environment_description'])
             
+        main_section.add_subsection(summary_section)
+        
+        # Add link to HybridAnalysis
         if overview.get('sha256'):
             report_url = f"https://www.hybrid-analysis.com/sample/{overview['sha256']}"
-            summary_section.set_item("Report Link", report_url)
-            
-        main_section.add_subsection(summary_section)
+            url_section = ResultURLSection("Hybrid Analysis Report Link")
+            url_section.add_url(report_url, name="Click to open the full analysis report in Hybrid Analysis")
+            main_section.add_subsection(url_section)
 
     def _add_submission_history(self, overview, main_section):
         """Add submission history section"""
