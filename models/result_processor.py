@@ -54,6 +54,10 @@ class ResultProcessor:
         if overview.get('environment_description'):
             summary_section.set_item("Analysis Environment", overview['environment_description'])
             
+        if overview.get('sha256'):
+            report_url = f"https://www.hybrid-analysis.com/sample/{overview['sha256']}"
+            summary_section.set_item("Report Link", report_url)
+            
         main_section.add_subsection(summary_section)
 
     def _add_submission_history(self, overview, main_section):
@@ -208,44 +212,67 @@ class ResultProcessor:
             main_section.add_subsection(stats_section)
 
     def _add_behavior_section(self, overview, main_section):
-        """Add behavioral analysis section"""
+        """Add behavioral analysis section grouped by threat level"""
         if overview.get('signatures'):
-            behavior_section = ResultTableSection("Behavioral Analysis")
-            behavior_section.set_column_order([
-                "name",
-                "category",
-                "threat_level",
-                "attack_id"
-            ])
-            
-            highest_threat_level = 0
+            malicious_sigs = []
+            suspicious_sigs = []
+            informative_sigs = []
             
             for sig in overview['signatures']:
                 if '_truncated_info_' in sig:
                     continue
                     
-                row = TableRow({
-                    "name": sig.get('name', ''),
-                    "category": sig.get('category', ''),
-                    "threat_level": f"{sig.get('threat_level_human', '')} ({sig.get('threat_level', '')})",
-                    "attack_id": sig.get('attck_id', '')
-                })
-                behavior_section.add_row(row)
-                
-                if sig.get('attck_id'):
-                    behavior_section.add_tag('technique.id', sig['attck_id'])
-                
                 threat_level = sig.get('threat_level', 0)
-                highest_threat_level = max(highest_threat_level, threat_level)
+                if threat_level >= 2:
+                    malicious_sigs.append(sig)
+                elif threat_level == 1:
+                    suspicious_sigs.append(sig)
+                else:
+                    informative_sigs.append(sig)
             
-            if highest_threat_level >= 2:
-                self.log.info("Detected malicious behavior patterns")
-                behavior_section.set_heuristic(2)
-            elif highest_threat_level == 1:
-                self.log.info("Detected suspicious behavior patterns")
-                behavior_section.set_heuristic(3)
+            # Helper to create table sections
+            def _create_sig_table(title, sigs, heur_id=None):
+                if not sigs:
+                    return None
+                    
+                section = ResultTableSection(title)
+                section.set_column_order([
+                    "name",
+                    "category",
+                    "threat_level",
+                    "attack_id"
+                ])
                 
-            main_section.add_subsection(behavior_section)
+                for sig in sigs:
+                    row = TableRow({
+                        "name": sig.get('name', ''),
+                        "category": sig.get('category', ''),
+                        "threat_level": f"{sig.get('threat_level_human', '')} ({sig.get('threat_level', '')})",
+                        "attack_id": sig.get('attck_id', '')
+                    })
+                    section.add_row(row)
+                    
+                    if sig.get('attck_id'):
+                        section.add_tag('technique.id', sig['attck_id'])
+                        
+                if heur_id:
+                    section.set_heuristic(heur_id)
+                return section
+
+            # Add Malicious Behavior (Heuristic 2)
+            malicious_section = _create_sig_table("Malicious Behavior", malicious_sigs, heur_id=2)
+            if malicious_section:
+                main_section.add_subsection(malicious_section)
+                
+            # Add Suspicious Behavior (Heuristic 3)
+            suspicious_section = _create_sig_table("Suspicious Behavior", suspicious_sigs, heur_id=3)
+            if suspicious_section:
+                main_section.add_subsection(suspicious_section)
+                
+            # Add Informative Behavior (No heuristic)
+            informative_section = _create_sig_table("Informative Behavior", informative_sigs)
+            if informative_section:
+                main_section.add_subsection(informative_section)
 
     def _add_crowdstrike_analysis(self, overview, main_section):
         """Add CrowdStrike AI analysis section"""
