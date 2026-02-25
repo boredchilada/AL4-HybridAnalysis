@@ -41,56 +41,56 @@ heuristics:
     description: The sample received a critical threat score (>=85) from Hybrid Analysis
     filetype: "*"
     score: 1000
-    attack_id: T1204
+    attack_id: ["T1204"]
 
   - heur_id: 2
     name: High Threat Score
     description: The sample received a high threat score (70-84) from Hybrid Analysis
     filetype: "*"
     score: 750
-    attack_id: T1204
+    attack_id: ["T1204"]
 
   - heur_id: 3
     name: High AV Detection Rate
     description: The sample was detected as malicious by multiple antivirus engines (>30)
     filetype: "*"
     score: 1000
-    attack_id: T1204
+    attack_id: ["T1204"]
 
   - heur_id: 4
     name: Malicious Memory Analysis
     description: CrowdStrike AI detected malicious behavior in process memory
     filetype: "*"
     score: 1000
-    attack_id: T1055
+    attack_id: ["T1055"]
 
   - heur_id: 5
     name: Suspicious Memory Analysis
     description: CrowdStrike AI detected suspicious behavior in process memory
     filetype: "*"
     score: 500
-    attack_id: T1055
+    attack_id: ["T1055"]
 
   - heur_id: 6
     name: Multiple MITRE ATT&CK Techniques
     description: The sample triggered multiple MITRE ATT&CK techniques with malicious indicators
     filetype: "*"
     score: 750
-    attack_id: T1204
+    attack_id: ["T1204"]
 
   - heur_id: 7
     name: High Signature Count
     description: The sample triggered a large number of behavioral signatures (>100)
     filetype: "*"
     score: 500
-    attack_id: T1204
+    attack_id: ["T1204"]
 
   - heur_id: 8
     name: Known Malware Family
     description: The sample was identified as belonging to a known malware family
     filetype: "*"
     score: 1000
-    attack_id: T1204
+    attack_id: ["T1204"]
 
 config:
   api_key:
