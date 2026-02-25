@@ -1,8 +1,8 @@
-from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow
+from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow, ResultKeyValueSection
 
 class ResultProcessor:
     def __init__(self, logger):
-        self.log = logger  # Use same name as service for consistency
+        self.log = logger
 
     def create_main_section(self, overview):
         """Create the main result section with all subsections"""
@@ -14,7 +14,7 @@ class ResultProcessor:
         self._add_file_info_section(overview, main_section)
         self._add_scanner_results(overview, main_section)
         self._add_mitre_attack_section(overview, main_section)
-        self._add_signature_stats_section(overview, main_section)  # New section for signature stats
+        self._add_signature_stats_section(overview, main_section)
         self._add_behavior_section(overview, main_section)
         self._add_crowdstrike_analysis(overview, main_section)
         self._add_process_section(overview, main_section)
@@ -24,46 +24,35 @@ class ResultProcessor:
 
     def _add_summary_section(self, overview, main_section):
         """Add summary section with verdict and threat information"""
-        summary_section = ResultSection("Analysis Summary")
+        summary_section = ResultKeyValueSection("Analysis Summary")
         
-        # Basic verdict info
         verdict = overview.get('verdict', 'Unknown')
-        summary_section.add_line(f"Verdict: {verdict}")
+        summary_section.set_item("Verdict", verdict)
         
-        # Threat scoring
         threat_score = overview.get('threat_score')
         if threat_score is not None:
-            threat_subsection = ResultSection("Threat Score Analysis")
-            threat_subsection.add_line(f"Threat Score: {threat_score}")
+            summary_section.set_item("Threat Score", threat_score)
             if threat_score >= 85:
                 self.log.info(f"Critical threat score detected: {threat_score}")
-                threat_subsection.set_heuristic(1)
+                summary_section.set_heuristic(1)
             elif threat_score >= 70:
                 self.log.info(f"High threat score detected: {threat_score}")
-                threat_subsection.set_heuristic(2)
-            summary_section.add_subsection(threat_subsection)
+                summary_section.set_heuristic(2)
         
-        # AV detection ratio
         av_detect = overview.get('av_detect')
         if av_detect is not None:
-            av_subsection = ResultSection("Antivirus Detection")
-            av_subsection.add_line(f"AV Detection Rate: {av_detect}")
+            summary_section.set_item("AV Detection Rate", av_detect)
             if av_detect > 30:
                 self.log.info(f"High AV detection rate: {av_detect}")
-                av_subsection.set_heuristic(3)
-            summary_section.add_subsection(av_subsection)
+                summary_section.set_heuristic(3)
         
-        # VX Family
         if overview.get('vx_family'):
-            family_subsection = ResultSection("Malware Family")
-            family_subsection.add_line(f"Malware Family: {overview['vx_family']}")
-            family_subsection.add_tag('attribution.family', overview['vx_family'])
-            family_subsection.set_heuristic(8)
-            summary_section.add_subsection(family_subsection)
+            summary_section.set_item("Malware Family", overview['vx_family'])
+            summary_section.add_tag('attribution.family', overview['vx_family'])
+            summary_section.set_heuristic(8)
             
-        # Environment info
         if overview.get('environment_description'):
-            summary_section.add_line(f"Analysis Environment: {overview['environment_description']}")
+            summary_section.set_item("Analysis Environment", overview['environment_description'])
             
         main_section.add_subsection(summary_section)
 
@@ -94,41 +83,36 @@ class ResultProcessor:
 
     def _add_file_info_section(self, overview, main_section):
         """Add detailed file information section"""
-        file_info = ResultSection("File Information")
+        file_info = ResultKeyValueSection("File Information")
         
-        # Basic file info
         if overview.get('type'):
-            file_info.add_line(f"File Type: {overview['type']}")
+            file_info.set_item("File Type", overview['type'])
         if overview.get('size'):
-            file_info.add_line(f"File Size: {overview['size']} bytes")
+            file_info.set_item("File Size (bytes)", overview['size'])
             
-        # File hashes
-        hashes = []
         if overview.get('md5'):
-            hashes.append(f"MD5: {overview['md5']}")
+            file_info.set_item("MD5", overview['md5'])
             file_info.add_tag('file.md5', overview['md5'])
         if overview.get('sha1'):
-            hashes.append(f"SHA1: {overview['sha1']}")
+            file_info.set_item("SHA1", overview['sha1'])
             file_info.add_tag('file.sha1', overview['sha1'])
         if overview.get('sha256'):
-            hashes.append(f"SHA256: {overview['sha256']}")
+            file_info.set_item("SHA256", overview['sha256'])
             file_info.add_tag('file.sha256', overview['sha256'])
-        if hashes:
-            file_info.add_line("File Hashes:")
-            for hash_line in hashes:
-                file_info.add_line(f"  {hash_line}")
                 
-        # PE specific info
         if overview.get('type_short') and 'peexe' in overview['type_short']:
-            file_info.add_line("\nPE Information:")
+            pe_info = ResultKeyValueSection("PE Information")
             if overview.get('imphash'):
-                file_info.add_line(f"  Import Hash: {overview['imphash']}")
+                pe_info.set_item("Import Hash", overview['imphash'])
             if overview.get('entrypoint'):
-                file_info.add_line(f"  Entry Point: {overview['entrypoint']}")
+                pe_info.set_item("Entry Point", overview['entrypoint'])
             if overview.get('image_base'):
-                file_info.add_line(f"  Image Base: {overview['image_base']}")
+                pe_info.set_item("Image Base", overview['image_base'])
             if overview.get('subsystem'):
-                file_info.add_line(f"  Subsystem: {overview['subsystem']}")
+                pe_info.set_item("Subsystem", overview['subsystem'])
+            
+            if pe_info.body:
+                file_info.add_subsection(pe_info)
                 
         main_section.add_subsection(file_info)
 
@@ -142,11 +126,9 @@ class ResultProcessor:
                 "details"
             ])
             
-            # Process both scanner formats
             scanners = overview.get('scanners', [])
             scanners_v2 = overview.get('scanners_v2', {})
             
-            # Add traditional scanner results
             for scanner in scanners:
                 row = TableRow({
                     "scanner": scanner.get('name', ''),
@@ -155,9 +137,8 @@ class ResultProcessor:
                 })
                 scanner_section.add_row(row)
             
-            # Add v2 scanner results
             for name, result in scanners_v2.items():
-                if result:  # Skip None values
+                if result:
                     row = TableRow({
                         "scanner": result.get('name', name),
                         "status": result.get('status', ''),
@@ -182,7 +163,6 @@ class ResultProcessor:
             total_suspicious = 0
             
             for technique in overview['mitre_attcks']:
-                # Skip truncated entries
                 if '_truncated_info_' in technique:
                     continue
                     
@@ -205,11 +185,9 @@ class ResultProcessor:
                 })
                 attack_section.add_row(row)
                 
-                # Add ATT&CK ID as tag
                 if technique.get('attck_id'):
                     attack_section.add_tag('technique.id', technique['attck_id'])
             
-            # Set heuristic if multiple malicious/suspicious indicators
             if total_malicious > 2 or (total_malicious + total_suspicious) > 5:
                 self.log.info(f"Multiple MITRE ATT&CK indicators: {total_malicious} malicious, {total_suspicious} suspicious")
                 attack_section.set_heuristic(6)
@@ -243,7 +221,6 @@ class ResultProcessor:
             highest_threat_level = 0
             
             for sig in overview['signatures']:
-                # Skip truncated entries
                 if '_truncated_info_' in sig:
                     continue
                     
@@ -261,10 +238,10 @@ class ResultProcessor:
                 threat_level = sig.get('threat_level', 0)
                 highest_threat_level = max(highest_threat_level, threat_level)
             
-            if highest_threat_level >= 2:  # malicious
+            if highest_threat_level >= 2:
                 self.log.info("Detected malicious behavior patterns")
                 behavior_section.set_heuristic(2)
-            elif highest_threat_level == 1:  # suspicious
+            elif highest_threat_level == 1:
                 self.log.info("Detected suspicious behavior patterns")
                 behavior_section.set_heuristic(3)
                 
@@ -285,7 +262,6 @@ class ResultProcessor:
             has_suspicious = False
             
             for analysis in overview['crowdstrike_ai']['executable_process_memory_analysis']:
-                # Skip truncated entries
                 if '_truncated_info_' in analysis:
                     continue
                     
@@ -303,13 +279,11 @@ class ResultProcessor:
                 })
                 cs_section.add_row(row)
                 
-                # Add process info as tags
                 if analysis.get('file_process'):
                     cs_section.add_tag('dynamic.process.name', analysis['file_process'])
                 if analysis.get('file_process_sha256'):
                     cs_section.add_tag('dynamic.process.file.sha256', analysis['file_process_sha256'])
             
-            # Set appropriate heuristic based on verdicts
             if has_malicious:
                 self.log.info("CrowdStrike detected malicious process memory")
                 cs_section.set_heuristic(4)
@@ -349,29 +323,26 @@ class ResultProcessor:
         has_network_data = False
         network_section = ResultSection("Network Activity")
         
-        # Add domains if present
         if overview.get('domains'):
             has_network_data = True
             network_section.add_line("Domains:")
             for domain in overview['domains']:
                 network_section.add_line(f"  {domain}")
-                network_section.add_tag('network.static.domain', domain)
+                network_section.add_tag('network.dynamic.domain', domain)
         
-        # Add hosts if present
         if overview.get('hosts'):
             has_network_data = True
             network_section.add_line("\nHosts:")
             for host in overview['hosts']:
                 network_section.add_line(f"  {host}")
-                network_section.add_tag('network.static.ip', host)
+                network_section.add_tag('network.dynamic.ip', host)
         
-        # Add compromised hosts if present
         if overview.get('compromised_hosts'):
             has_network_data = True
             network_section.add_line("\nCompromised Hosts:")
             for host in overview['compromised_hosts']:
                 network_section.add_line(f"  {host}")
-                network_section.add_tag('network.static.ip', host)
+                network_section.add_tag('network.dynamic.ip', host)
         
         if has_network_data:
             main_section.add_subsection(network_section)

@@ -5,12 +5,12 @@ class HybridAnalysisClient:
     def __init__(self, api_key, base_url, logger):
         self.api_key = api_key
         self.base_url = base_url
-        self.log = logger  # Use same name as service for consistency
+        self.log = logger  
         self.session = requests.Session()
         self.headers = {
             'User-agent': 'Assemblyline v4',
             'accept': 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',  # Required for form data
+            'Content-Type': 'application/x-www-form-urlencoded', 
             'api-key': api_key
         }
 
