@@ -1,5 +1,5 @@
 name: HybridAnalysis
-version: 4.5.0.33
+version: 4.7.0.0
 description: This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities
 
 accepts: .*
@@ -95,12 +95,12 @@ heuristics:
 config:
   api_key:
     type: str
-    value: null
+    value: ""
     description: API key for Hybrid Analysis
 
   base_url:
     type: str
-    value: "https://www.hybrid-analysis.com/api/v2"
+    value: "https://hybrid-analysis.com/api/v2"
     description: Base URL for Hybrid Analysis API
     
   enable_debug_logging:
@@ -110,6 +110,6 @@ config:
 
 docker_config:
   allow_internet_access: true
-  image: ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.33
+  image: ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.0
   cpu_cores: 1
   ram_mb: 1024
