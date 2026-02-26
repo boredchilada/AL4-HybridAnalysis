@@ -31,25 +31,31 @@ class ResultProcessor:
         
         threat_score = overview.get('threat_score')
         if threat_score is not None:
-            summary_section.set_item("Threat Score", threat_score)
+            threat_sec = ResultKeyValueSection("Threat Score")
+            threat_sec.set_item("Score", threat_score)
             if threat_score >= 85:
                 self.log.info(f"Critical threat score detected: {threat_score}")
-                summary_section.set_heuristic(1)
+                threat_sec.set_heuristic(1)
             elif threat_score >= 70:
                 self.log.info(f"High threat score detected: {threat_score}")
-                summary_section.set_heuristic(2)
+                threat_sec.set_heuristic(2)
+            summary_section.add_subsection(threat_sec)
         
         av_detect = overview.get('av_detect')
         if av_detect is not None:
-            summary_section.set_item("AV Detection Rate", av_detect)
+            av_sec = ResultKeyValueSection("AV Detection")
+            av_sec.set_item("Detection Rate", av_detect)
             if av_detect > 30:
                 self.log.info(f"High AV detection rate: {av_detect}")
-                summary_section.set_heuristic(3)
+                av_sec.set_heuristic(3)
+            summary_section.add_subsection(av_sec)
         
         if overview.get('vx_family'):
-            summary_section.set_item("Malware Family", overview['vx_family'])
-            summary_section.add_tag('attribution.family', overview['vx_family'])
-            summary_section.set_heuristic(8)
+            fam_sec = ResultKeyValueSection("Malware Family")
+            fam_sec.set_item("Family", overview['vx_family'])
+            fam_sec.add_tag('attribution.family', overview['vx_family'])
+            fam_sec.set_heuristic(8)
+            summary_section.add_subsection(fam_sec)
             
         if overview.get('environment_description'):
             summary_section.set_item("Analysis Environment", overview['environment_description'])
@@ -262,17 +268,17 @@ class ResultProcessor:
                     section.set_heuristic(heur_id)
                 return section
 
-            # Add Malicious Behavior (Heuristic 2)
-            malicious_section = _create_sig_table("Malicious Behavior", malicious_sigs, heur_id=2)
+            # Add Malicious Behavior
+            malicious_section = _create_sig_table("Malicious Behavior", malicious_sigs)
             if malicious_section:
                 main_section.add_subsection(malicious_section)
                 
-            # Add Suspicious Behavior (Heuristic 3)
-            suspicious_section = _create_sig_table("Suspicious Behavior", suspicious_sigs, heur_id=3)
+            # Add Suspicious Behavior
+            suspicious_section = _create_sig_table("Suspicious Behavior", suspicious_sigs)
             if suspicious_section:
                 main_section.add_subsection(suspicious_section)
                 
-            # Add Informative Behavior (No heuristic)
+            # Add Informative Behavior
             informative_section = _create_sig_table("Informative Behavior", informative_sigs)
             if informative_section:
                 main_section.add_subsection(informative_section)
