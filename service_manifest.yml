@@ -1,9 +1,9 @@
 name: HybridAnalysis
-version: 4.7.0.2
+version: 4.7.0.3
 description: This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities
 
 accepts: .*
-rejects: empty|metadata/.*
+rejects: empty|metadata/.*|code/xml|text/plain
 
 stage: CORE
 category: Dynamic Analysis
@@ -17,6 +17,10 @@ is_external: true
 
 submission_params:
   - name: force_resubmit
+    type: bool
+    value: false
+    default: false
+  - name: allow_submission
     type: bool
     value: false
     default: false
@@ -131,6 +135,6 @@ config:
 
 docker_config:
   allow_internet_access: true
-  image: ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.2
+  image: ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.3
   cpu_cores: 1
   ram_mb: 1024

@@ -154,6 +154,11 @@ class HybridAnalysisClient:
                     data=data
                 )
                 
+                if submit_response.status_code == 429:
+                    error_msg = f"Rate limit exceeded: {submit_response.text}"
+                    self.log.warning(error_msg)
+                    raise ConnectionError(f"429: {error_msg}")
+                    
                 if submit_response.status_code not in [200, 201]:
                     error_msg = f"File submission failed: {submit_response.text}"
                     self.log.error(error_msg, extra={
