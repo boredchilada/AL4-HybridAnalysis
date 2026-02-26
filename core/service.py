@@ -40,7 +40,7 @@ class HybridAnalysisService(ServiceBase):
         self.client.test_connection()
         
         self.log.info("Initializing result processor")
-        self.result_processor = ResultProcessor(self.log)
+        self.result_processor = ResultProcessor(self)
         self.log.info("Hybrid Analysis Service initialized successfully", extra={
             'base_url': self.base_url,
             'client_initialized': self.client is not None,
@@ -105,13 +105,13 @@ class HybridAnalysisService(ServiceBase):
                             'sha256': sha256,
                             'elapsed_time': time.time() - start_time
                         })
-                        overview = self.client.get_report(None, sha256)
-                        if overview and overview.get('verdict'):
+                        existing = self.client.check_existing_analysis(sha256)
+                        if existing and existing.get('verdict'):
                             self.log.info(f"Analysis complete for {request.file_name}", extra={
-                                'verdict': overview['verdict'],
+                                'verdict': existing['verdict'],
                                 'attempts': attempt + 1
                             })
-                            main_section = self.result_processor.create_main_section(overview)
+                            main_section = self.result_processor.create_main_section(existing)
                             result.add_section(main_section)
                             break
                             

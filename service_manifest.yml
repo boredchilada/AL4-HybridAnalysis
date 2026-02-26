@@ -92,6 +92,27 @@ heuristics:
     score: 1000
     attack_id: ["T1204"]
 
+  - heur_id: 9
+    name: Malicious Verdict
+    description: The sample received a malicious verdict from Hybrid Analysis
+    filetype: "*"
+    score: 1000
+    attack_id: ["T1204"]
+
+  - heur_id: 10
+    name: Malicious Behavior
+    description: The sample exhibited malicious behavior based on behavioral signatures
+    filetype: "*"
+    score: 1000
+    attack_id: ["T1204"]
+
+  - heur_id: 11
+    name: Suspicious Behavior
+    description: The sample exhibited suspicious behavior based on behavioral signatures
+    filetype: "*"
+    score: 500
+    attack_id: ["T1204"]
+
 config:
   api_key:
     type: str

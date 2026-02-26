@@ -77,6 +77,13 @@ class HybridAnalysisClient:
                             'threat_score': best_result.get('threat_score'),
                             'verdict': best_result.get('verdict')
                         })
+                        
+                        job_id = best_result.get('job_id')
+                        if job_id:
+                            full_report = self.get_report(job_id, None)
+                            if full_report:
+                                return full_report
+                                
                         return best_result
             
             self.log.info("No existing analysis found", extra={'sha256': sha256})

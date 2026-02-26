@@ -1,8 +1,11 @@
 from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow, ResultKeyValueSection, ResultURLSection
+from assemblyline.odm.models.ontology.results import sandbox, network, process
+import urllib.parse
 
 class ResultProcessor:
-    def __init__(self, logger):
-        self.log = logger
+    def __init__(self, service):
+        self.service = service
+        self.log = service.log
 
     def create_main_section(self, overview):
         """Create the main result section with all subsections"""
@@ -20,7 +23,64 @@ class ResultProcessor:
         self._add_process_section(overview, main_section)
         self._add_network_section(overview, main_section)
         
+        self._map_ontologies(overview)
+        
         return main_section
+
+    def _get_objectid(self, tag, prefix=""):
+        return {
+            "tag": tag,
+            "ontology_id": f"{prefix}{tag}",
+            "service_name": self.service.name if hasattr(self.service, 'name') else "hybridanalysis"
+        }
+
+    def _map_ontologies(self, overview):
+        try:
+            analysis_start = overview.get('analysis_start_time', '1970-01-01T00:00:00.000000Z')
+            
+            # Sandbox Ontology
+            sb = sandbox.Sandbox({
+                "objectid": self._get_objectid("HybridAnalysis", "sandbox_"),
+                "analysis_metadata": {
+                    "start_time": analysis_start
+                },
+                "sandbox_name": "Hybrid Analysis"
+            })
+            self.service.ontology.add_result_part(sandbox.Sandbox, sb.as_primitives())
+
+            # Network Ontology
+            for domain in overview.get('domains', []):
+                nc = network.NetworkConnection({
+                    "objectid": self._get_objectid(domain, "network_domain_"),
+                    "connection_type": "dns",
+                    "dns_details": {
+                        "domain": domain,
+                        "lookup_type": "A"
+                    }
+                })
+                self.service.ontology.add_result_part(network.NetworkConnection, nc.as_primitives())
+            
+            for host in overview.get('hosts', []):
+                nc = network.NetworkConnection({
+                    "objectid": self._get_objectid(host, "network_ip_"),
+                    "destination_ip": host
+                })
+                self.service.ontology.add_result_part(network.NetworkConnection, nc.as_primitives())
+
+            # Process Ontology
+            for proc in overview.get('processes', []):
+                if proc.get('name'):
+                    p = process.Process({
+                        "objectid": self._get_objectid(proc.get('name'), f"process_{proc.get('pid', '0')}_"),
+                        "image": proc.get('name'),
+                        "pid": proc.get('pid'),
+                        "command_line": proc.get('command_line'),
+                        "start_time": analysis_start
+                    })
+                    self.service.ontology.add_result_part(process.Process, p.as_primitives())
+
+        except Exception as e:
+            self.log.warning(f"Failed to map ontologies: {str(e)}")
 
     def _add_summary_section(self, overview, main_section):
         """Add summary section with verdict and threat information"""
@@ -28,6 +88,8 @@ class ResultProcessor:
         
         verdict = overview.get('verdict', 'Unknown')
         summary_section.set_item("Verdict", verdict)
+        if verdict.lower() == 'malicious':
+            summary_section.set_heuristic(9)
         
         threat_score = overview.get('threat_score')
         if threat_score is not None:
@@ -72,7 +134,7 @@ class ResultProcessor:
     def _add_submission_history(self, overview, main_section):
         """Add submission history section"""
         if overview.get('submissions'):
-            history_section = ResultTableSection("Submission History")
+            history_section = ResultTableSection("Submission History", auto_collapse=True)
             history_section.set_column_order([
                 "filename",
                 "submission_id",
@@ -96,7 +158,7 @@ class ResultProcessor:
 
     def _add_file_info_section(self, overview, main_section):
         """Add detailed file information section"""
-        file_info = ResultKeyValueSection("File Information")
+        file_info = ResultKeyValueSection("File Information", auto_collapse=True)
         
         if overview.get('type'):
             file_info.set_item("File Type", overview['type'])
@@ -132,7 +194,7 @@ class ResultProcessor:
     def _add_scanner_results(self, overview, main_section):
         """Add scanner results section"""
         if overview.get('scanners') or overview.get('scanners_v2'):
-            scanner_section = ResultTableSection("Scanner Results")
+            scanner_section = ResultTableSection("Scanner Results", auto_collapse=True)
             scanner_section.set_column_order([
                 "scanner",
                 "status",
@@ -269,18 +331,19 @@ class ResultProcessor:
                 return section
 
             # Add Malicious Behavior
-            malicious_section = _create_sig_table("Malicious Behavior", malicious_sigs)
+            malicious_section = _create_sig_table("Malicious Behavior", malicious_sigs, heur_id=10)
             if malicious_section:
                 main_section.add_subsection(malicious_section)
                 
             # Add Suspicious Behavior
-            suspicious_section = _create_sig_table("Suspicious Behavior", suspicious_sigs)
+            suspicious_section = _create_sig_table("Suspicious Behavior", suspicious_sigs, heur_id=11)
             if suspicious_section:
                 main_section.add_subsection(suspicious_section)
                 
             # Add Informative Behavior
             informative_section = _create_sig_table("Informative Behavior", informative_sigs)
             if informative_section:
+                informative_section.auto_collapse = True
                 main_section.add_subsection(informative_section)
 
     def _add_crowdstrike_analysis(self, overview, main_section):

@@ -1,7 +1,7 @@
 # Hybrid Analysis Service for Assemblyline 4
 
 ```
-docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.5.0.33
+docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.1
 ```
 
 ## Description
@@ -14,9 +14,11 @@ This service integrates with Hybrid Analysis to provide additional threat intell
   - Behavioral analysis with MITRE ATT&CK mapping
   - Process activity monitoring
   - Network communications analysis
-  - File system activity tracking
-  - Registry modifications monitoring
+  - AV Detection rates
+  - CrowdStrike Memory Analysis
+  - Malware family attribution
 - Detailed logging for troubleshooting
+- Integration with Assemblyline's ontology mapping (Sandbox, Network, Process)
 - Integration with Assemblyline's heuristics system
 
 ## Submission Parameters
@@ -47,32 +49,6 @@ The service supports the following submission parameters:
     - "tor": Route traffic through TOR
     - "simulated": Simulate network services
 
-## Logging System
-The service implements a comprehensive logging system with the following features:
-
-### Log Configuration
-- Dual logging output:
-  - File logging: Detailed logs stored in the system's temp directory (`hybrid_analysis.log`)
-  - Console logging: Real-time output to stdout for monitoring
-- Structured log format: `timestamp - log_level - message`
-
-### Logged Information
-- Service lifecycle events (start/stop)
-- API interactions and responses
-- File submission details and progress
-- Analysis status and polling updates
-- Result processing and section creation
-- Error tracking and troubleshooting data
-
-### Log Format Example
-```
-2024-02-13 14:53:13 - INFO - ==========================================
-2024-02-13 14:53:13 - INFO - Logging initialized. Log file: /tmp/hybrid_analysis.log
-2024-02-13 14:53:13 - INFO - ==========================================
-2024-02-13 14:53:13 - INFO - Starting Hybrid Analysis Service
-2024-02-13 14:53:13 - INFO - Configuration loaded - Base URL: https://www.hybrid-analysis.com/api/v2
-```
-
 ## Service Configuration
 The service requires the following configuration:
 
@@ -84,7 +60,7 @@ api_key:
 
 base_url:
   type: str
-  value: "https://www.hybrid-analysis.com/api/v2"  # Default API endpoint
+  value: "https://hybrid-analysis.com/api/v2"  # Default API endpoint
   description: Base URL for Hybrid Analysis API
 
 enable_debug_logging:
@@ -93,8 +69,25 @@ enable_debug_logging:
   description: Enable detailed debug logging to file and stdout
 ```
 
+## Logging System
+The service implements a comprehensive logging system with the following features:
+
+### Log Configuration
+- Dual logging output:
+  - File logging: Detailed logs stored in the system's temp directory
+  - Console logging: Real-time output to stdout for monitoring
+- Structured log format: `timestamp - log_level - message`
+
+### Logged Information
+- Service lifecycle events (start/stop)
+- API interactions and responses
+- File submission details and progress
+- Analysis status and polling updates
+- Result processing and section creation
+- Error tracking and troubleshooting data
+
 ## Heuristics
-The service implements eight heuristics:
+The service implements eleven heuristics:
 
 1. Critical Threat Score (1000)
    - Triggers when sample receives a critical threat score (>=85)
@@ -128,6 +121,18 @@ The service implements eight heuristics:
    - Triggers when sample is identified as belonging to a known malware family
    - MITRE ATT&CK: T1204 (User Execution)
 
+9. Malicious Verdict (1000)
+   - Triggers when the sample receives a malicious verdict from Hybrid Analysis
+   - MITRE ATT&CK: T1204 (User Execution)
+
+10. Malicious Behavior (1000)
+    - Triggers when the sample exhibited malicious behavior based on behavioral signatures
+    - MITRE ATT&CK: T1204 (User Execution)
+
+11. Suspicious Behavior (500)
+    - Triggers when the sample exhibited suspicious behavior based on behavioral signatures
+    - MITRE ATT&CK: T1204 (User Execution)
+
 ## Docker Configuration
 ```yaml
 allow_internet_access: true
@@ -138,6 +143,7 @@ ram_mb: 1024
 ## Installation
 
 1. Copy service_manifest.yml into AL4
+2. Configure your `api_key` within the Assemblyline service UI
 
 ## Results
 The service provides results in several sections:
@@ -147,7 +153,7 @@ The service provides results in several sections:
 - Scanner Results
 - MITRE ATT&CK Techniques
 - Signature Statistics
-- Behavioral Analysis
+- Behavioral Analysis (Malicious/Suspicious/Informative)
 - CrowdStrike Memory Analysis
 - Process Activity
 - Network Activity
@@ -162,3 +168,4 @@ The service provides results in several sections:
 - Comprehensive logging to troubleshoot issues
 - Detailed error reporting in service results
 - API connection validation on service start
+- Exponential polling fallback handling
