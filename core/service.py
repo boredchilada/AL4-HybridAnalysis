@@ -74,12 +74,14 @@ class HybridAnalysisService(ServiceBase):
             })
 
             force_resubmit = request.get_param('force_resubmit')
+            allow_submission = request.get_param('allow_submission')
             environment_id = request.get_param('environment_id')
             experimental_anti_evasion = request.get_param('experimental_anti_evasion')
             network_settings = request.get_param('network_settings')
 
             self.log.debug("Submission parameters", extra={
                 'force_resubmit': force_resubmit,
+                'allow_submission': allow_submission,
                 'environment_id': environment_id,
                 'experimental_anti_evasion': experimental_anti_evasion,
                 'network_settings': network_settings
@@ -127,6 +129,11 @@ class HybridAnalysisService(ServiceBase):
                     request.result = result
                     return result
             
+            if not allow_submission and not force_resubmit:
+                self.log.info(f"allow_submission is false and no existing analysis found, skipping submission for {request.file_name}")
+                request.result = result
+                return result
+
             self.log.info(f"Submitting {request.file_name} for new analysis", extra={'sha256': sha256})
             submission_data = self.client.submit_file(
                 file_path=request.file_path,
@@ -177,7 +184,12 @@ class HybridAnalysisService(ServiceBase):
         except (RecoverableError, NonRecoverableError):
             raise
         except Exception as e:
-            error_msg = f"Error analyzing {request.file_name}: {str(e)}"
+            error_str = str(e)
+            if "429" in error_str or "timeout" in error_str.lower() or "connection" in error_str.lower():
+                self.log.warning(f"Recoverable error for {request.file_name}: {error_str}")
+                raise RecoverableError(f"Recoverable error analyzing {request.file_name}: {error_str}")
+                
+            error_msg = f"Error analyzing {request.file_name}: {error_str}"
             self.log.error(error_msg, extra={
                 'error_type': type(e).__name__,
                 'elapsed_time': time.time() - start_time

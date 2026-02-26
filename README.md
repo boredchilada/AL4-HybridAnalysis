@@ -1,11 +1,40 @@
 # Hybrid Analysis Service for Assemblyline 4
-
-```
-docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.1
-```
+![Python](https://img.shields.io/badge/Python-3-blue) ![Assemblyline 4](https://img.shields.io/badge/Assemblyline-4-green)
 
 ## Description
-This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities for Assemblyline 4. It submits files to Hybrid Analysis for dynamic analysis and retrieves detailed behavioral analysis results.
+The Hybrid Analysis service is an Assemblyline 4 Dynamic Analysis integration that automatically submits unknown files to [Hybrid Analysis](https://hybrid-analysis.com/) for deep behavioral sandboxing. It parses the resulting JSON reports, mapping detailed threat scores, MITRE ATT&CK techniques, process activity, and network communications directly into Assemblyline 4's native result ontologies.
+
+## Prerequisites & Installation
+To run this service in your Assemblyline 4 environment, follow these steps:
+
+1. **Pull the Image**: 
+   Ensure your AL4 appliance can pull the Docker image:
+   ```bash
+   docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.3
+   ```
+2. **Register the Service**:
+   Copy the `service_manifest.yml` into your AL4 service directory or register it via the Assemblyline 4 Administration UI.
+3. **Configure the API Key**:
+   Navigate to the Service Management page in the AL4 UI. Under the **HybridAnalysis** service configuration, paste your Hybrid Analysis API Key into the `api_key` field.
+
+## Quick Start / Usage
+Once the service is active, any file submitted to Assemblyline 4 will automatically be queried against the Hybrid Analysis dataset via its SHA256 hash.
+
+If you want the service to *upload* unknown files to Hybrid Analysis (instead of just checking for existing reports), you must explicitly enable submission during your AL4 upload:
+1. In the AL4 Submission UI, open **Submission Parameters**.
+2. Under **Service Selection**, locate **HybridAnalysis**.
+3. Check the **allow_submission** box.
+4. (Optional) Check **force_resubmit** to re-sandbox a file that already has a completed report.
+
+## Tech Stack
+Based on the service configuration and dependencies, this project utilizes:
+- **Language:** Python 3
+- **Framework:** Assemblyline v4 Service Base (`assemblyline-v4-service`)
+- **API Communication:** `requests`, `urllib3`
+- **Data Parsing:** `python-dateutil`
+- **Containerization:** Docker (`ghcr.io/boredchilada/al4-hybridanalysis`)
+
+---
 
 ## Features
 - Automated file submission to Hybrid Analysis
@@ -17,40 +46,25 @@ This service integrates with Hybrid Analysis to provide additional threat intell
   - AV Detection rates
   - CrowdStrike Memory Analysis
   - Malware family attribution
-- Detailed logging for troubleshooting
 - Integration with Assemblyline's ontology mapping (Sandbox, Network, Process)
 - Integration with Assemblyline's heuristics system
 
 ## Submission Parameters
-The service supports the following submission parameters:
+The service supports the following user submission parameters:
 
 - **force_resubmit** (bool, default: false)
   - Force resubmission even if previous analysis exists
-
+- **allow_submission** (bool, default: false)
+  - Allow the service to upload unknown files to Hybrid Analysis. If false, it only queries existing hashes.
 - **environment_id** (list, default: "160")
-  - Analysis environment selection
-  - Available options:
-    - "160": Windows 10 64 bit
-    - "140": Windows 7 64 bit
-    - "120": Windows 7 32 bit
-    - "110": Windows XP 32 bit
-    - "100": Windows 7 Smart Mode
-    - "400": Android Static Analysis
-    - "310": Linux 64 bit
-    - "200": macOS 10
-
+  - Analysis environment selection (e.g., "160" for Windows 10 64 bit, "310" for Linux 64 bit, "200" for macOS 10).
 - **experimental_anti_evasion** (bool, default: false)
-  - Enable experimental anti-evasion techniques
-
+  - Enable experimental anti-evasion techniques.
 - **network_settings** (list, default: "default")
-  - Network configuration for analysis
-  - Available options:
-    - "default": Standard network access
-    - "tor": Route traffic through TOR
-    - "simulated": Simulate network services
+  - Network configuration for analysis (Options: `default`, `tor`, `simulated`).
 
 ## Service Configuration
-The service requires the following configuration:
+The service requires the following configuration via AL4:
 
 ```yaml
 api_key:
@@ -69,103 +83,25 @@ enable_debug_logging:
   description: Enable detailed debug logging to file and stdout
 ```
 
-## Logging System
-The service implements a comprehensive logging system with the following features:
-
-### Log Configuration
-- Dual logging output:
-  - File logging: Detailed logs stored in the system's temp directory
-  - Console logging: Real-time output to stdout for monitoring
-- Structured log format: `timestamp - log_level - message`
-
-### Logged Information
-- Service lifecycle events (start/stop)
-- API interactions and responses
-- File submission details and progress
-- Analysis status and polling updates
-- Result processing and section creation
-- Error tracking and troubleshooting data
+## Logging & Error Handling
+- Dual logging output (File logs in the system's temp directory and console logging to stdout).
+- Structured log format: `timestamp - log_level - message`.
+- Logs track service lifecycle, API interactions, polling updates, and error tracking.
+- Exponential polling fallback is implemented for `IN_PROGRESS` analyses to prevent rate-limiting.
 
 ## Heuristics
-The service implements eleven heuristics:
+The service implements 11 heuristic rules mapping to threat scores, AV detections, and CrowdStrike AI memory analysis. Each heuristic is mapped to MITRE ATT&CK where applicable.
 
-1. Critical Threat Score (1000)
-   - Triggers when sample receives a critical threat score (>=85)
-   - MITRE ATT&CK: T1204 (User Execution)
-
-2. High Threat Score (750)
-   - Triggers when sample receives a high threat score (70-84)
-   - MITRE ATT&CK: T1204 (User Execution)
-
-3. High AV Detection Rate (1000)
-   - Triggers when sample is detected by multiple AV engines (>30)
-   - MITRE ATT&CK: T1204 (User Execution)
-
-4. Malicious Memory Analysis (1000)
-   - Triggers when CrowdStrike AI detects malicious behavior in process memory
-   - MITRE ATT&CK: T1055 (Process Injection)
-
-5. Suspicious Memory Analysis (500)
-   - Triggers when CrowdStrike AI detects suspicious behavior in process memory
-   - MITRE ATT&CK: T1055 (Process Injection)
-
-6. Multiple MITRE ATT&CK Techniques (750)
-   - Triggers when multiple MITRE ATT&CK techniques with malicious indicators are detected
-   - MITRE ATT&CK: T1204 (User Execution)
-
-7. High Signature Count (500)
-   - Triggers when sample has a large number of behavioral signatures (>100)
-   - MITRE ATT&CK: T1204 (User Execution)
-
-8. Known Malware Family (1000)
-   - Triggers when sample is identified as belonging to a known malware family
-   - MITRE ATT&CK: T1204 (User Execution)
-
-9. Malicious Verdict (1000)
-   - Triggers when the sample receives a malicious verdict from Hybrid Analysis
-   - MITRE ATT&CK: T1204 (User Execution)
-
-10. Malicious Behavior (1000)
-    - Triggers when the sample exhibited malicious behavior based on behavioral signatures
-    - MITRE ATT&CK: T1204 (User Execution)
-
-11. Suspicious Behavior (500)
-    - Triggers when the sample exhibited suspicious behavior based on behavioral signatures
-    - MITRE ATT&CK: T1204 (User Execution)
-
-## Docker Configuration
-```yaml
-allow_internet_access: true
-cpu_cores: 1
-ram_mb: 1024
-```
-
-## Installation
-
-1. Copy service_manifest.yml into AL4
-2. Configure your `api_key` within the Assemblyline service UI
-
-## Results
-The service provides results in several sections:
-- Analysis Summary (verdict, threat score, malware family)
-- Submission History
-- File Information
-- Scanner Results
-- MITRE ATT&CK Techniques
-- Signature Statistics
-- Behavioral Analysis (Malicious/Suspicious/Informative)
-- CrowdStrike Memory Analysis
-- Process Activity
-- Network Activity
-
-## Dependencies
-- Python 3
-- Assemblyline 4
-- Requests library
-- Internet access for API communication
-
-## Error Handling
-- Comprehensive logging to troubleshoot issues
-- Detailed error reporting in service results
-- API connection validation on service start
-- Exponential polling fallback handling
+| ID | Name | Description | Score | MITRE ATT&CK |
+|----|------|-------------|-------|--------------|
+| **1** | Critical Threat Score | Sample received a critical threat score (>=85) | 1000 | T1204 |
+| **2** | High Threat Score | Sample received a high threat score (70-84) | 750 | T1204 |
+| **3** | High AV Detection Rate | Detected as malicious by multiple antivirus engines (>30) | 1000 | T1204 |
+| **4** | Malicious Memory Analysis | CrowdStrike AI detected malicious behavior in process memory | 1000 | T1055 |
+| **5** | Suspicious Memory Analysis | CrowdStrike AI detected suspicious behavior in process memory | 500 | T1055 |
+| **6** | Multiple ATT&CK Techniques | Triggered multiple MITRE techniques with malicious indicators | 750 | T1204 |
+| **7** | High Signature Count | Triggered a large number of behavioral signatures (>100) | 500 | T1204 |
+| **8** | Known Malware Family | Identified as belonging to a known malware family | 1000 | T1204 |
+| **9** | Malicious Verdict | Received a malicious verdict from Hybrid Analysis | 1000 | T1204 |
+| **10** | Malicious Behavior | Exhibited malicious behavior based on behavioral signatures | 1000 | T1204 |
+| **11** | Suspicious Behavior | Exhibited suspicious behavior based on behavioral signatures | 500 | T1204 |
