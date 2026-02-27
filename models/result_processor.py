@@ -170,13 +170,10 @@ class ResultProcessor:
             
         if overview.get('md5'):
             file_info.set_item("MD5", overview['md5'])
-            file_info.add_tag('file.md5', overview['md5'])
         if overview.get('sha1'):
             file_info.set_item("SHA1", overview['sha1'])
-            file_info.add_tag('file.sha1', overview['sha1'])
         if overview.get('sha256'):
             file_info.set_item("SHA256", overview['sha256'])
-            file_info.add_tag('file.sha256', overview['sha256'])
                 
         if overview.get('type_short') and 'peexe' in overview['type_short']:
             pe_info = ResultKeyValueSection("PE Information")
@@ -262,13 +259,18 @@ class ResultProcessor:
                     "indicators": indicators
                 })
                 attack_section.add_row(row)
-                
-                if technique.get('attck_id'):
-                    attack_section.add_tag('technique.id', technique['attck_id'])
             
             if total_malicious > 2 or (total_malicious + total_suspicious) > 5:
                 self.log.info(f"Multiple MITRE ATT&CK indicators: {total_malicious} malicious, {total_suspicious} suspicious")
                 attack_section.set_heuristic(6)
+                
+            # Add ATT&CK IDs to the heuristic if it was created
+            if attack_section.heuristic:
+                for technique in overview['mitre_attcks']:
+                    if '_truncated_info_' in technique:
+                        continue
+                    if technique.get('attck_id'):
+                        attack_section.heuristic.add_attack_id(technique['attck_id'])
                     
             main_section.add_subsection(attack_section)
 
@@ -325,12 +327,12 @@ class ResultProcessor:
                         "attack_id": sig.get('attck_id', '')
                     })
                     section.add_row(row)
-                    
-                    if sig.get('attck_id'):
-                        section.add_tag('technique.id', sig['attck_id'])
                         
                 if heur_id:
                     section.set_heuristic(heur_id)
+                    for sig in sigs:
+                        if sig.get('attck_id'):
+                            section.heuristic.add_attack_id(sig['attck_id'])
                 return section
 
             # Add Malicious Behavior
@@ -382,7 +384,7 @@ class ResultProcessor:
                 cs_section.add_row(row)
                 
                 if analysis.get('file_process'):
-                    cs_section.add_tag('dynamic.process.name', analysis['file_process'])
+                    cs_section.add_tag('dynamic.process.file_name', analysis['file_process'])
                 if analysis.get('file_process_sha256'):
                     cs_section.add_tag('dynamic.process.file.sha256', analysis['file_process_sha256'])
             
@@ -414,7 +416,7 @@ class ResultProcessor:
                 process_section.add_row(row)
                 
                 if process.get('name'):
-                    process_section.add_tag('dynamic.process.name', process['name'])
+                    process_section.add_tag('dynamic.process.file_name', process['name'])
                 if process.get('command_line'):
                     process_section.add_tag('dynamic.process.command_line', process['command_line'])
                     
