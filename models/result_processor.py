@@ -1,6 +1,7 @@
-from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow, ResultKeyValueSection, ResultURLSection
+from assemblyline_v4_service.common.result import ResultSection, ResultTableSection, TableRow, ResultKeyValueSection, ResultMultiSection, URLSectionBody, BODY_FORMAT
 from assemblyline.odm.models.ontology.results import sandbox, network, process
 import urllib.parse
+import json
 
 class ResultProcessor:
     def __init__(self, service):
@@ -127,8 +128,10 @@ class ResultProcessor:
         # Add link to HybridAnalysis
         if overview.get('sha256'):
             report_url = f"https://www.hybrid-analysis.com/sample/{overview['sha256']}"
-            url_section = ResultURLSection("Hybrid Analysis Report Link")
-            url_section.add_url(report_url, name="Click to open the full analysis report in Hybrid Analysis")
+            url_section = ResultMultiSection("Hybrid Analysis Report Link")
+            url_body = URLSectionBody()
+            url_body.add_url(report_url, name="Click to open the full analysis report in Hybrid Analysis")
+            url_section.add_section_part(url_body)
             main_section.add_subsection(url_section)
 
     def _add_submission_history(self, overview, main_section):
