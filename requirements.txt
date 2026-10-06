@@ -1,5 +1,4 @@
-requests
-python-dateutil
+# Framework packages: unpinned, provided by the base image.
+assemblyline
 assemblyline-v4-service
-colorama
-urllib3
+# requests comes with the base image.

@@ -1,0 +1,330 @@
+{
+ "reports": [
+  {
+   "id": "6a1f00000000000000000a00",
+   "environment_id": 140,
+   "state": "ERROR",
+   "error_type": "FILE_TYPE_BAD_ERROR",
+   "verdict": null,
+   "environment_description": "Windows 11 64 bit"
+  },
+  {
+   "id": "6a1f00000000000000000a01",
+   "environment_id": 120,
+   "state": "SUCCESS",
+   "verdict": "suspicious",
+   "environment_description": "Windows 7 64 bit"
+  },
+  {
+   "id": "6a0000000000000000000a02",
+   "environment_id": 160,
+   "state": "SUCCESS",
+   "verdict": "malicious",
+   "environment_description": "Windows 10 64 bit"
+  },
+  {
+   "id": "6a1f00000000000000000a03",
+   "environment_id": 330,
+   "state": "IN_PROGRESS",
+   "verdict": null,
+   "environment_description": "Linux (Ubuntu 24.04, 64 bit)"
+  }
+ ],
+ "summaries": {
+  "6a1f00000000000000000a01": {
+   "job_id": "6a1f00000000000000000a01",
+   "state": "SUCCESS",
+   "verdict": "suspicious",
+   "threat_score": 60,
+   "sha256": "3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f",
+   "environment_description": "Windows 7 32 bit",
+   "analysis_start_time": "2026-01-05T00:00:00+00:00",
+   "total_signatures": 1,
+   "signatures": [
+    {
+     "threat_level": 0,
+     "threat_level_human": "informative",
+     "category": "General",
+     "identifier": "test-Matched",
+     "type": 2,
+     "relevance": 5,
+     "name": "Matched Compiler/Packer signature",
+     "description": "Matched Compiler/Packer signature (test)",
+     "origin": "Hybrid Analysis",
+     "attck_id": null,
+     "attck_id_wiki": null,
+     "capec_id": null
+    }
+   ]
+  },
+  "6a0000000000000000000a02": {
+   "job_id": "6a0000000000000000000a02",
+   "state": "SUCCESS",
+   "verdict": "malicious",
+   "threat_score": 90,
+   "threat_level": 2,
+   "av_detect": 45,
+   "vx_family": "ExampleFamily",
+   "type": "PE32 executable (GUI) Intel 80386, for MS Windows",
+   "type_short": [
+    "peexe",
+    "executable"
+   ],
+   "size": 71,
+   "md5": "c6f88b6a2cb99d8dfbd2c308b3dd2c15",
+   "sha1": "b2bd1e8292d3a783dc90fa05622af2940fa77f23",
+   "sha256": "3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f",
+   "imphash": "ffffffffffffffffffffffffffffffff",
+   "entrypoint": "0x401000",
+   "image_base": "0x400000",
+   "subsystem": "Win32 GUI",
+   "environment_id": 160,
+   "environment_description": "Windows 10 64 bit",
+   "analysis_start_time": "2026-01-02T03:04:05+00:00",
+   "total_signatures": 6,
+   "signatures": [
+    {
+     "threat_level": 2,
+     "threat_level_human": "malicious",
+     "category": "External Systems",
+     "identifier": "suricata-2",
+     "type": 2,
+     "relevance": 10,
+     "name": "Detected Suricata Alert",
+     "origin": "Suricata Alerts",
+     "attck_id": null,
+     "attck_id_wiki": null,
+     "capec_id": null,
+     "description": "Detected alert \"ET MALWARE Example Botnet Config Sent\" (SID: 2999001, Rev: 1, Severity: 1) categorized as \"Malware Command and Control Activity Detected\"\n Detected alert \"ET POLICY Example Lookup\" (SID: 2999002, Rev: 3, Severity: 2) categorized as \"Potential Corporate Privacy Violation\""
+    },
+    {
+     "threat_level": 2,
+     "threat_level_human": "malicious",
+     "category": "Hiding 3rd party processes",
+     "identifier": "test-Injects",
+     "type": 2,
+     "relevance": 5,
+     "name": "Injects code into another process",
+     "description": "\"known_to_ha.bin\" injects code into another process\n second detail line",
+     "origin": "Hybrid Analysis",
+     "attck_id": "T1055",
+     "attck_id_wiki": null,
+     "capec_id": null
+    },
+    {
+     "threat_level": 2,
+     "threat_level_human": "malicious",
+     "category": "Network Related",
+     "identifier": "test-Contacts",
+     "type": 2,
+     "relevance": 5,
+     "name": "Contacts a command and control server",
+     "description": "\"known_to_ha.bin\" contacts a command and control server\n second detail line",
+     "origin": "Hybrid Analysis",
+     "attck_id": "T1071",
+     "attck_id_wiki": null,
+     "capec_id": null
+    },
+    {
+     "threat_level": 1,
+     "threat_level_human": "suspicious",
+     "category": "Discovery",
+     "identifier": "test-Reads-th",
+     "type": 2,
+     "relevance": 5,
+     "name": "Reads the computer name",
+     "description": "\"known_to_ha.bin\" reads the computer name\n second detail line",
+     "origin": "Hybrid Analysis",
+     "attck_id": "T1082",
+     "attck_id_wiki": null,
+     "capec_id": null
+    },
+    {
+     "threat_level": 0,
+     "threat_level_human": "informative",
+     "category": "General",
+     "identifier": "test-Matched",
+     "type": 2,
+     "relevance": 5,
+     "name": "Matched Compiler/Packer signature",
+     "description": "\"known_to_ha.bin\" matched compiler/packer signature\n second detail line",
+     "origin": "Hybrid Analysis",
+     "attck_id": null,
+     "attck_id_wiki": null,
+     "capec_id": null
+    },
+    {
+     "threat_level": 0,
+     "threat_level_human": "informative",
+     "category": "General",
+     "identifier": "test-Creates",
+     "type": 2,
+     "relevance": 5,
+     "name": "Creates mutants",
+     "description": "\"known_to_ha.bin\" creates mutants\n second detail line",
+     "origin": "Hybrid Analysis",
+     "attck_id": null,
+     "attck_id_wiki": null,
+     "capec_id": null
+    },
+    {
+     "_truncated_info_": "signatures truncated"
+    }
+   ],
+   "mitre_attcks": [
+    {
+     "tactic": "Defense Evasion",
+     "technique": "Process Injection",
+     "attck_id": "T1055",
+     "parent": null,
+     "malicious_identifiers_count": 2,
+     "malicious_identifiers": [],
+     "suspicious_identifiers_count": 1,
+     "suspicious_identifiers": [],
+     "informative_identifiers_count": 0,
+     "informative_identifiers": []
+    },
+    {
+     "tactic": "Command and Control",
+     "technique": "Application Layer Protocol",
+     "attck_id": "T1071",
+     "parent": null,
+     "malicious_identifiers_count": 0,
+     "malicious_identifiers": [],
+     "suspicious_identifiers_count": 3,
+     "suspicious_identifiers": [],
+     "informative_identifiers_count": 2,
+     "informative_identifiers": []
+    }
+   ],
+   "processes": [
+    {
+     "uid": "00000000-00001234",
+     "parentuid": null,
+     "name": "known_to_ha.bin",
+     "normalized_path": "C:\\known_to_ha.bin",
+     "command_line": null,
+     "pid": null,
+     "sha256": "3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f",
+     "av_label": "Trojan.Example",
+     "av_matched": 20,
+     "av_total": 25
+    },
+    {
+     "uid": "00000000-00001240",
+     "parentuid": "00000000-00001234",
+     "name": "cmd.exe",
+     "normalized_path": "%WINDIR%\\System32\\cmd.exe",
+     "command_line": "%WINDIR%\\system32\\cmd.exe /c copy /y C:\\known_to_ha.bin %APPDATA%\\update.exe",
+     "pid": null,
+     "sha256": null,
+     "av_label": null,
+     "av_matched": null,
+     "av_total": null
+    }
+   ],
+   "domains": [
+    "c2.example.com"
+   ],
+   "hosts": [
+    "192.0.2.20"
+   ],
+   "compromised_hosts": [
+    "192.0.2.21"
+   ],
+   "crowdstrike_ai": {
+    "executable_process_memory_analysis": [
+     {
+      "file_process": "known_to_ha.bin",
+      "file_process_pid": 4660,
+      "verdict": "Suspicious",
+      "file_process_disc_pathway": "C:\\known_to_ha.bin",
+      "file_process_sha256": "3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f"
+     }
+    ],
+    "analysis_related_urls": []
+   },
+   "submissions": [
+    {
+     "submission_id": "bbbbbbbbbbbbbbbbbbbbbbb1",
+     "filename": "known_to_ha.bin",
+     "url": "http://download.example.org/known_to_ha.bin",
+     "created_at": "2026-01-02T03:00:00+00:00"
+    }
+   ],
+   "classification_tags": [
+    "examplefamily"
+   ],
+   "extracted_files": [
+    {
+     "name": "readme.txt",
+     "file_path": "%TEMP%\\readme.txt",
+     "threat_level": 0,
+     "threat_level_readable": "no specific threat",
+     "av_label": null,
+     "av_matched": null,
+     "av_total": null,
+     "type_tags": [
+      "text"
+     ],
+     "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+     "name": "update.exe",
+     "file_path": "%APPDATA%\\update.exe",
+     "threat_level": 2,
+     "threat_level_readable": "malicious",
+     "av_label": "Trojan.Example",
+     "av_matched": 20,
+     "av_total": 25,
+     "type_tags": [
+      "peexe",
+      "executable"
+     ],
+     "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+    }
+   ],
+   "sha512": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+   "ssdeep": "96:exampleSSDEEPvalue:example",
+   "submit_name": "known_to_ha.bin",
+   "network_mode": "default",
+   "detonation_parameters": {
+    "network_mode": "default",
+    "experimental_anti_evasion": true
+   },
+   "warnings": [
+    "Some low-level data is hidden, as this is only a slim report"
+   ]
+  }
+ },
+ "overview": {
+  "sha256": "3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f",
+  "whitelisted": false,
+  "last_file_name": "known_to_ha.bin",
+  "other_file_name": [
+   "Known_To_HA.bin",
+   "invoice.exe",
+   "invoice.exe"
+  ],
+  "scanners": [
+   {
+    "name": "CrowdStrike Falcon Static Analysis (ML)",
+    "status": "malicious",
+    "positives": null,
+    "total": null
+   },
+   {
+    "name": "Metadefender",
+    "status": "malicious",
+    "positives": 19,
+    "total": 27
+   },
+   {
+    "name": "VirusTotal",
+    "status": "no-result",
+    "positives": null,
+    "total": null
+   }
+  ]
+ }
+}

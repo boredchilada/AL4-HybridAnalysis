@@ -1,107 +1,113 @@
-# Hybrid Analysis Service for Assemblyline 4
-![Python](https://img.shields.io/badge/Python-3-blue) ![Assemblyline 4](https://img.shields.io/badge/Assemblyline-4-green)
+# Assemblyline service: HybridAnalysis
 
-## Description
-The Hybrid Analysis service is an Assemblyline 4 Dynamic Analysis integration that automatically submits unknown files to [Hybrid Analysis](https://hybrid-analysis.com/) for deep behavioral sandboxing. It parses the resulting JSON reports, mapping detailed threat scores, MITRE ATT&CK techniques, process activity, and network communications directly into Assemblyline 4's native result ontologies.
+Shows [Hybrid Analysis](https://www.hybrid-analysis.com) results for files in Assemblyline 4.
 
-## Prerequisites & Installation
-To run this service in your Assemblyline 4 environment, follow these steps:
+The service looks up each file's SHA-256. When successful analyses exist, it reports the most
+severe one (malicious, then suspicious, then others; the newest within each) and links to it.
+A lookup sends only the hash. Files Hybrid Analysis has never seen, or has only failed
+analyses for, produce an empty result.
 
-1. **Pull the Image**: 
-   Ensure your AL4 appliance can pull the Docker image:
-   ```bash
-   docker pull ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.3
-   ```
-2. **Register the Service**:
-   Copy the `service_manifest.yml` into your AL4 service directory or register it via the Assemblyline 4 Administration UI.
-3. **Configure the API Key**:
-   Navigate to the Service Management page in the AL4 UI. Under the **HybridAnalysis** service configuration, paste your Hybrid Analysis API Key into the `api_key` field.
+The result shows:
 
-## Quick Start / Usage
-Once the service is active, any file submitted to Assemblyline 4 will automatically be queried against the Hybrid Analysis dataset via its SHA256 hash.
+- the verdict, threat score, AV detection rate, malware family (tagged as
+  `attribution.family`), classification tags, and how the sample was run;
+- links to the report and to the file's reports in other environments;
+- CrowdStrike machine learning and MetaDefender verdicts;
+- behaviour signatures by threat level, each with what it observed, its category, ATT&CK ID
+  and Hybrid Analysis identifier;
+- Suricata alerts, tagged as `network.signature.signature_id` and `network.signature.message`;
+- CrowdStrike memory analysis verdicts;
+- the process tree with command lines;
+- dropped and extracted files, most dangerous first;
+- contacted domains and hosts, and ATT&CK techniques;
+- other names the file was submitted under, and its submission history.
 
-If you want the service to *upload* unknown files to Hybrid Analysis (instead of just checking for existing reports), you must explicitly enable submission during your AL4 upload:
-1. In the AL4 Submission UI, open **Submission Parameters**.
-2. Under **Service Selection**, locate **HybridAnalysis**.
-3. Check the **allow_submission** box.
-4. (Optional) Check **force_resubmit** to re-sandbox a file that already has a completed report.
+Processes, domains and IPs are tagged (`dynamic.process.*`, `network.dynamic.*`). The analysis
+is recorded as a `Sandbox` part of the result ontology.
 
-## Tech Stack
-Based on the service configuration and dependencies, this project utilizes:
-- **Language:** Python 3
-- **Framework:** Assemblyline v4 Service Base (`assemblyline-v4-service`)
-- **API Communication:** `requests`, `urllib3`
-- **Data Parsing:** `python-dateutil`
-- **Containerization:** Docker (`ghcr.io/boredchilada/al4-hybridanalysis`)
+## Which files are looked up
 
----
+| Parameter | Default | Meaning |
+|-----------|---------|---------|
+| `lookup_depth` | `6` | Maximum extraction depth. `0` is the submitted file only, `1` adds files extracted from it, and `6` covers Assemblyline's default depth. |
+| `extracted_types` | `.*` | Regular expression matched from the start of an extracted file's type, for example `executable/.*\|document/.*\|code/.*`. The submitted file is always looked up. |
 
-## Features
-- Automated file submission to Hybrid Analysis
-- Comprehensive analysis results including:
-  - Overall verdict and threat scoring
-  - Behavioral analysis with MITRE ATT&CK mapping
-  - Process activity monitoring
-  - Network communications analysis
-  - AV Detection rates
-  - CrowdStrike Memory Analysis
-  - Malware family attribution
-- Integration with Assemblyline's ontology mapping (Sandbox, Network, Process)
-- Integration with Assemblyline's heuristics system
+A lookup normally uses up to 3 API calls (hash search, report summary, file overview) against
+Hybrid Analysis's limit of 2,000 calls per hour. Skipped files cost nothing, and their empty
+results are not cached, so a later submission with a wider scope looks them up.
 
-## Submission Parameters
-The service supports the following user submission parameters:
+## Uploading files
 
-- **force_resubmit** (bool, default: false)
-  - Force resubmission even if previous analysis exists
-- **allow_submission** (bool, default: false)
-  - Allow the service to upload unknown files to Hybrid Analysis. If false, it only queries existing hashes.
-- **environment_id** (list, default: "160")
-  - Analysis environment selection (e.g., "160" for Windows 10 64 bit, "310" for Linux 64 bit, "200" for macOS 10).
-- **experimental_anti_evasion** (bool, default: false)
-  - Enable experimental anti-evasion techniques.
-- **network_settings** (list, default: "default")
-  - Network configuration for analysis (Options: `default`, `tor`, `simulated`).
+Both parameters default to `false`.
 
-## Service Configuration
-The service requires the following configuration via AL4:
+| Parameter | Uploads the file when |
+|-----------|-----------------------|
+| `allow_submission` | Hybrid Analysis has no successful or running analysis of it |
+| `force_resubmit` | always |
 
-```yaml
-api_key:
-  type: str
-  value: null  # Required: Your Hybrid Analysis API key
-  description: API key for Hybrid Analysis
+Extracted files are uploaded only when `upload_extracted` is also `true`, within the lookup
+scope above. `environment_id`, `experimental_anti_evasion` and `network_settings` choose how an
+uploaded file is analysed. Uploaded files and their reports are public, and uploads count
+against the account's allowance.
 
-base_url:
-  type: str
-  value: "https://hybrid-analysis.com/api/v2"  # Default API endpoint
-  description: Base URL for Hybrid Analysis API
-
-enable_debug_logging:
-  type: bool
-  value: false
-  description: Enable detailed debug logging to file and stdout
-```
-
-## Logging & Error Handling
-- Dual logging output (File logs in the system's temp directory and console logging to stdout).
-- Structured log format: `timestamp - log_level - message`.
-- Logs track service lifecycle, API interactions, polling updates, and error tracking.
-- Exponential polling fallback is implemented for `IN_PROGRESS` analyses to prevent rate-limiting.
+- A refused upload or a failed analysis shows Hybrid Analysis's message.
+- An analysis that does not finish within `submission_timeout` is retried by Assemblyline. The
+  retry finds the analysis by hash and does not upload again. With `force_resubmit`, the result
+  reports the job instead of retrying.
 
 ## Heuristics
-The service implements 11 heuristic rules mapping to threat scores, AV detections, and CrowdStrike AI memory analysis. Each heuristic is mapped to MITRE ATT&CK where applicable.
 
-| ID | Name | Description | Score | MITRE ATT&CK |
-|----|------|-------------|-------|--------------|
-| **1** | Critical Threat Score | Sample received a critical threat score (>=85) | 1000 | T1204 |
-| **2** | High Threat Score | Sample received a high threat score (70-84) | 750 | T1204 |
-| **3** | High AV Detection Rate | Detected as malicious by multiple antivirus engines (>30) | 1000 | T1204 |
-| **4** | Malicious Memory Analysis | CrowdStrike AI detected malicious behavior in process memory | 1000 | T1055 |
-| **5** | Suspicious Memory Analysis | CrowdStrike AI detected suspicious behavior in process memory | 500 | T1055 |
-| **6** | Multiple ATT&CK Techniques | Triggered multiple MITRE techniques with malicious indicators | 750 | T1204 |
-| **7** | High Signature Count | Triggered a large number of behavioral signatures (>100) | 500 | T1204 |
-| **8** | Known Malware Family | Identified as belonging to a known malware family | 1000 | T1204 |
-| **9** | Malicious Verdict | Received a malicious verdict from Hybrid Analysis | 1000 | T1204 |
-| **10** | Malicious Behavior | Exhibited malicious behavior based on behavioral signatures | 1000 | T1204 |
-| **11** | Suspicious Behavior | Exhibited suspicious behavior based on behavioral signatures | 500 | T1204 |
+Scores follow Hybrid Analysis's overall verdict. Hybrid Analysis also rates generic traits of
+benign files as malicious-level signatures (a statically linked binary, a document linking to an
+executable), so signatures alone cannot make a file malicious.
+
+| ID | Name | Score | Raised when |
+|----|------|-------|-------------|
+| 9 | Malicious Verdict | 1000 | Hybrid Analysis's verdict is malicious |
+| 12 | Suspicious Verdict | 300 | Hybrid Analysis's verdict is suspicious |
+| 13 | Malicious-level Behaviour Signatures | 100 each, at most 500 | Signatures Hybrid Analysis rates malicious |
+| 14 | Suspicious-level Behaviour Signatures | 0 | Signatures Hybrid Analysis rates suspicious |
+| 4 | Malicious Memory Analysis | 1000 | CrowdStrike finds malicious process memory |
+| 5 | Suspicious Memory Analysis | 500 | CrowdStrike finds suspicious process memory |
+
+Heuristics 13 and 14 carry each signature's Hybrid Analysis identifier (for example
+`network-12`) and ATT&CK IDs, so single signatures can be searched or safelisted. Informative
+signatures are listed without a heuristic. Heuristics 1 to 3, 6 to 8, 10 and 11 are retired and
+score 0.
+
+## Installation and configuration
+
+In Assemblyline, open Administration → Services → Add service, paste `service_manifest.yml`,
+then set `api_key` in the service settings.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `api_key` | (empty) | Hybrid Analysis API key. Required. |
+| `base_url` | `https://hybrid-analysis.com/api/v2` | API endpoint. |
+| `submission_timeout` | `600` | Seconds to wait for an uploaded file's analysis. |
+| `poll_interval` | `15` | Seconds between status checks while waiting. |
+
+A missing or rejected key fails each file with an error naming the problem. Rate limits and
+outages are retried.
+
+## Tests
+
+```bash
+bash scripts/build-image.sh al4-hybridanalysis:test 4.7.0.dev0 podman
+bash scripts/ci-gate.sh al4-hybridanalysis:test podman
+```
+
+The gate runs Ruff, Pyright and pytest inside the image, offline, against recorded responses in
+`tests/fixtures/ha/`.
+
+## Layout
+
+```
+hybridanalysis/
+  analysis.py     lookup scope, report selection, verdicts, signatures, process tree
+  client.py       Hybrid Analysis API v2 client
+  results.py      result sections, tags and the Sandbox ontology part
+  service.py      class HybridAnalysis(ServiceBase)
+tests/            tests, fake client, recorded responses, samples/ and results/
+scripts/          build-image.sh, ci-gate.sh, gentests.py
+```

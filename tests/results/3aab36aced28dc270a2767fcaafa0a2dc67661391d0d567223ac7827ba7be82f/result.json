@@ -1,0 +1,713 @@
+{
+  "extra": {
+    "drop_file": false,
+    "score": 1800,
+    "sections": [
+      {
+        "auto_collapse": false,
+        "body": null,
+        "body_config": {},
+        "body_format": "TEXT",
+        "classification": "TLP:C",
+        "depth": 0,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Hybrid Analysis Results",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": {
+          "AV Detection": "45%",
+          "Analysed At": "2026-01-02T03:04:05+00:00",
+          "Analysis Environment": "Windows 10 64 bit",
+          "Anti-evasion": "on",
+          "Classification Tags": "examplefamily",
+          "Malware Family": "ExampleFamily",
+          "Network Mode": "default",
+          "Report Detail": "slim report: Hybrid Analysis hid some low-level data",
+          "Report ID": "6a0000000000000000000a02",
+          "Threat Score": "90/100",
+          "Verdict": "malicious"
+        },
+        "body_config": {},
+        "body_format": "KEY_VALUE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": {
+          "attack_ids": [],
+          "frequency": 1,
+          "heur_id": 9,
+          "score": 1000,
+          "score_map": {},
+          "signatures": {}
+        },
+        "promote_to": null,
+        "tags": {
+          "attribution": {
+            "family": [
+              "ExampleFamily"
+            ]
+          }
+        },
+        "title_text": "Analysis Summary",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          [
+            "URL",
+            [
+              {
+                "name": "Open this Falcon Sandbox report on Hybrid Analysis",
+                "url": "https://www.hybrid-analysis.com/sample/3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f/6a0000000000000000000a02"
+              }
+            ],
+            {}
+          ]
+        ],
+        "body_config": {},
+        "body_format": "MULTI",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Hybrid Analysis Report Link",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "detections": "",
+            "scanner": "CrowdStrike Falcon Static Analysis (ML)",
+            "verdict": "malicious"
+          },
+          {
+            "detections": "19/27",
+            "scanner": "Metadefender",
+            "verdict": "malicious"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "scanner",
+            "verdict",
+            "detections"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Scanner Results",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": true,
+        "body": [
+          {
+            "created": "2026-06-02T16:08:32Z",
+            "environment": "Windows 7 64 bit",
+            "report": "https://www.hybrid-analysis.com/sample/3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f/6a1f00000000000000000a01",
+            "verdict": "suspicious"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "environment",
+            "verdict",
+            "created",
+            "report"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Other Hybrid Analysis reports for this file",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "attack_id": "",
+            "category": "External Systems",
+            "details": "Detected alert \"ET MALWARE Example Botnet Config Sent\" (SID: 2999001, Rev: 1, Severity: 1) categorized as \"Malware Command and Control Activity Detected\" | Detected alert \"ET POLICY Example Lookup\" (SID: 2999002, Rev: 3, Severity: 2) categorized as \"Potential Corporate Privacy Violation\"",
+            "identifier": "suricata-2",
+            "signature": "Detected Suricata Alert"
+          },
+          {
+            "attack_id": "T1055",
+            "category": "Hiding 3rd party processes",
+            "details": "\"known_to_ha.bin\" injects code into another process | second detail line",
+            "identifier": "test-injects",
+            "signature": "Injects code into another process"
+          },
+          {
+            "attack_id": "T1071",
+            "category": "Network Related",
+            "details": "\"known_to_ha.bin\" contacts a command and control server | second detail line",
+            "identifier": "test-contacts",
+            "signature": "Contacts a command and control server"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "signature",
+            "details",
+            "category",
+            "attack_id",
+            "identifier"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": {
+          "attack_ids": [
+            "T1055",
+            "T1071"
+          ],
+          "frequency": 1,
+          "heur_id": 13,
+          "score": 300,
+          "score_map": {},
+          "signatures": {
+            "suricata-2": 1,
+            "test-contacts": 1,
+            "test-injects": 1
+          }
+        },
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Malicious-level behaviour signatures",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "attack_id": "T1082",
+            "category": "Discovery",
+            "details": "\"known_to_ha.bin\" reads the computer name | second detail line",
+            "identifier": "test-reads-th",
+            "signature": "Reads the computer name"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "signature",
+            "details",
+            "category",
+            "attack_id",
+            "identifier"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": {
+          "attack_ids": [
+            "T1082"
+          ],
+          "frequency": 1,
+          "heur_id": 14,
+          "score": 0,
+          "score_map": {},
+          "signatures": {
+            "test-reads-th": 1
+          }
+        },
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Suspicious-level behaviour signatures",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": true,
+        "body": [
+          {
+            "attack_id": "",
+            "category": "General",
+            "details": "\"known_to_ha.bin\" matched compiler/packer signature | second detail line",
+            "identifier": "test-matched",
+            "signature": "Matched Compiler/Packer signature"
+          },
+          {
+            "attack_id": "",
+            "category": "General",
+            "details": "\"known_to_ha.bin\" creates mutants | second detail line",
+            "identifier": "test-creates",
+            "signature": "Creates mutants"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "signature",
+            "details",
+            "category",
+            "attack_id",
+            "identifier"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Informative behaviour signatures",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "alert": "ET MALWARE Example Botnet Config Sent",
+            "category": "Malware Command and Control Activity Detected",
+            "level": "malicious",
+            "severity": 1,
+            "sid": "2999001"
+          },
+          {
+            "alert": "ET POLICY Example Lookup",
+            "category": "Potential Corporate Privacy Violation",
+            "level": "malicious",
+            "severity": 2,
+            "sid": "2999002"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "alert",
+            "sid",
+            "severity",
+            "category",
+            "level"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {
+          "network": {
+            "signature": {
+              "message": [
+                "ET MALWARE Example Botnet Config Sent",
+                "ET POLICY Example Lookup"
+              ],
+              "signature_id": [
+                "2999001",
+                "2999002"
+              ]
+            }
+          }
+        },
+        "title_text": "Suricata Alerts",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "path": "C:\\known_to_ha.bin",
+            "pid": 4660,
+            "process": "known_to_ha.bin",
+            "verdict": "suspicious"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "process",
+            "pid",
+            "verdict",
+            "path"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": {
+          "attack_ids": [],
+          "frequency": 1,
+          "heur_id": 5,
+          "score": 500,
+          "score_map": {},
+          "signatures": {}
+        },
+        "promote_to": null,
+        "tags": {
+          "dynamic": {
+            "process": {
+              "file_name": [
+                "known_to_ha.bin"
+              ]
+            }
+          }
+        },
+        "title_text": "CrowdStrike Memory Analysis",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "av_detection": "Trojan.Example (20/25)",
+            "command_line": "",
+            "pid": "",
+            "process": "known_to_ha.bin"
+          },
+          {
+            "av_detection": "",
+            "command_line": "%WINDIR%\\system32\\cmd.exe /c copy /y C:\\known_to_ha.bin %APPDATA%\\update.exe",
+            "pid": "",
+            "process": "  \u2514 cmd.exe"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "process",
+            "command_line",
+            "av_detection",
+            "pid"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {
+          "dynamic": {
+            "process": {
+              "command_line": [
+                "%WINDIR%\\system32\\cmd.exe /c copy /y C:\\known_to_ha.bin %APPDATA%\\update.exe"
+              ],
+              "file_name": [
+                "known_to_ha.bin",
+                "cmd.exe"
+              ]
+            }
+          }
+        },
+        "title_text": "Process Tree",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "av_detection": "Trojan.Example (20/25)",
+            "name": "update.exe",
+            "path": "%APPDATA%\\update.exe",
+            "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "type": "peexe, executable",
+            "verdict": "malicious"
+          },
+          {
+            "av_detection": "",
+            "name": "readme.txt",
+            "path": "%TEMP%\\readme.txt",
+            "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "type": "text",
+            "verdict": "no specific threat"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "name",
+            "path",
+            "verdict",
+            "av_detection",
+            "type",
+            "sha256"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Files dropped or extracted during the analysis",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "type": "domain",
+            "value": "c2.example.com"
+          },
+          {
+            "type": "host",
+            "value": "192.0.2.20"
+          },
+          {
+            "type": "compromised host",
+            "value": "192.0.2.21"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "type",
+            "value"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {
+          "network": {
+            "dynamic": {
+              "domain": [
+                "c2.example.com"
+              ],
+              "ip": [
+                "192.0.2.20",
+                "192.0.2.21"
+              ]
+            }
+          }
+        },
+        "title_text": "Network Activity",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": [
+          {
+            "id": "T1055",
+            "informative": 0,
+            "malicious": 2,
+            "suspicious": 1,
+            "tactic": "Defense Evasion",
+            "technique": "Process Injection"
+          },
+          {
+            "id": "T1071",
+            "informative": 2,
+            "malicious": 0,
+            "suspicious": 3,
+            "tactic": "Command and Control",
+            "technique": "Application Layer Protocol"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "tactic",
+            "technique",
+            "id",
+            "malicious",
+            "suspicious",
+            "informative"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "MITRE ATT&CK techniques with malicious or suspicious indicators",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": true,
+        "body": {
+          "Also Submitted As": "invoice.exe",
+          "File Size (bytes)": 71,
+          "File Type": "PE32 executable (GUI) Intel 80386, for MS Windows",
+          "MD5": "c6f88b6a2cb99d8dfbd2c308b3dd2c15",
+          "SHA1": "b2bd1e8292d3a783dc90fa05622af2940fa77f23",
+          "SHA256": "3aab36aced28dc270a2767fcaafa0a2dc67661391d0d567223ac7827ba7be82f",
+          "SHA512": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "SSDEEP": "96:exampleSSDEEPvalue:example"
+        },
+        "body_config": {},
+        "body_format": "KEY_VALUE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "File Information",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": false,
+        "body": {
+          "Entry Point": "0x401000",
+          "Image Base": "0x400000",
+          "Import Hash": "ffffffffffffffffffffffffffffffff",
+          "Subsystem": "Win32 GUI"
+        },
+        "body_config": {},
+        "body_format": "KEY_VALUE",
+        "classification": "TLP:C",
+        "depth": 2,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "PE Information",
+        "zeroize_on_tag_safe": false
+      },
+      {
+        "auto_collapse": true,
+        "body": [
+          {
+            "filename": "known_to_ha.bin",
+            "source_url": "http://download.example.org/known_to_ha.bin",
+            "submission_id": "bbbbbbbbbbbbbbbbbbbbbbb1",
+            "submitted_at": "2026-01-02T03:00:00+00:00"
+          }
+        ],
+        "body_config": {
+          "column_order": [
+            "filename",
+            "submitted_at",
+            "source_url",
+            "submission_id"
+          ]
+        },
+        "body_format": "TABLE",
+        "classification": "TLP:C",
+        "depth": 1,
+        "heuristic": null,
+        "promote_to": null,
+        "tags": {},
+        "title_text": "Submission History",
+        "zeroize_on_tag_safe": false
+      }
+    ]
+  },
+  "files": {
+    "extracted": [],
+    "supplementary": []
+  },
+  "results": {
+    "heuristics": [
+      {
+        "attack_ids": [],
+        "heur_id": 5,
+        "signatures": []
+      },
+      {
+        "attack_ids": [],
+        "heur_id": 9,
+        "signatures": []
+      },
+      {
+        "attack_ids": [
+          "T1055",
+          "T1071"
+        ],
+        "heur_id": 13,
+        "signatures": [
+          "suricata-2",
+          "test-injects",
+          "test-contacts"
+        ]
+      },
+      {
+        "attack_ids": [
+          "T1082"
+        ],
+        "heur_id": 14,
+        "signatures": [
+          "test-reads-th"
+        ]
+      }
+    ],
+    "tags": {
+      "attribution.family": [
+        {
+          "heur_id": 9,
+          "signatures": [],
+          "value": "ExampleFamily"
+        }
+      ],
+      "dynamic.process.command_line": [
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "%WINDIR%\\system32\\cmd.exe /c copy /y C:\\known_to_ha.bin %APPDATA%\\update.exe"
+        }
+      ],
+      "dynamic.process.file_name": [
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "cmd.exe"
+        },
+        {
+          "heur_id": 5,
+          "signatures": [],
+          "value": "known_to_ha.bin"
+        },
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "known_to_ha.bin"
+        }
+      ],
+      "network.dynamic.domain": [
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "c2.example.com"
+        }
+      ],
+      "network.dynamic.ip": [
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "192.0.2.20"
+        },
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "192.0.2.21"
+        }
+      ],
+      "network.signature.message": [
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "ET MALWARE Example Botnet Config Sent"
+        },
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "ET POLICY Example Lookup"
+        }
+      ],
+      "network.signature.signature_id": [
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "2999001"
+        },
+        {
+          "heur_id": null,
+          "signatures": [],
+          "value": "2999002"
+        }
+      ]
+    },
+    "temp_submission_data": {}
+  }
+}

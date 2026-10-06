@@ -1,6 +1,12 @@
 name: HybridAnalysis
-version: 4.7.0.3
-description: This service integrates with Hybrid Analysis to provide additional threat intelligence and malware analysis capabilities
+version: $SERVICE_TAG
+description: >-
+  Shows Hybrid Analysis results for a file. The service looks up the file's SHA-256 and
+  reports the most informative successful analysis: verdict, threat score, behaviour
+  signatures by threat level, MITRE ATT&CK techniques, processes and network activity.
+  Lookups never upload the file. Uploading is off by default: allow_submission uploads
+  files Hybrid Analysis has never seen, force_resubmit uploads even when an analysis
+  exists. Uploaded files and their reports are public on Hybrid Analysis.
 
 accepts: .*
 rejects: empty|metadata/.*|code/xml|text/plain
@@ -9,26 +15,42 @@ stage: CORE
 category: Dynamic Analysis
 
 file_required: true
-timeout: 600  
+# Covers config.submission_timeout plus fetching the report when uploading is enabled.
+timeout: 900
 disable_cache: false
 
 enabled: true
 is_external: true
+privileged: false
+
+config:
+  # Hybrid Analysis API key. Set it in AssemblyLine's service settings, never in this file.
+  api_key: ""
+  base_url: "https://hybrid-analysis.com/api/v2"
+  # Seconds to wait for an uploaded file's analysis, and the polling interval.
+  submission_timeout: 600
+  poll_interval: 15
 
 submission_params:
+  # Upload even when an analysis exists. Off by default; uses the account's upload allowance.
   - name: force_resubmit
     type: bool
     value: false
     default: false
+  # Upload files Hybrid Analysis has never seen. Off by default.
   - name: allow_submission
     type: bool
     value: false
     default: false
+  # Analysis environment for uploads (Hybrid Analysis /system/environments):
+  # 160 Windows 10 64-bit, 140 Windows 11 64-bit, 120 Windows 7 64-bit, 110 Windows 7 32-bit
+  # (HWP support), 100 Windows 7 32-bit, 330 Linux Ubuntu 24.04, 430 macOS (ARM64),
+  # 200 Android static analysis.
   - name: environment_id
     type: list
     value: "160"
     default: "160"
-    list: ["160", "140", "120", "110", "100", "400", "310", "200"]
+    list: ["160", "140", "120", "110", "100", "330", "430", "200"]
   - name: experimental_anti_evasion
     type: bool
     value: false
@@ -38,103 +60,124 @@ submission_params:
     value: "default"
     default: "default"
     list: ["default", "tor", "simulated"]
+  # How deep to look up extracted files: 0 = only the submitted file, 1 = also files extracted
+  # from it, and so on. 6 covers everything AssemblyLine extracts by default.
+  - name: lookup_depth
+    type: int
+    value: 6
+    default: 6
+  # Which extracted files to look up: a regular expression over AssemblyLine file types, matched
+  # from the start like a manifest's accepts (for example "executable/.*|document/.*").
+  # The submitted file is always looked up. Default ".*": every type.
+  - name: extracted_types
+    type: str
+    value: ".*"
+    default: ".*"
+  # Uploading extracted files: false (default) = extracted files are only looked up, even when
+  # uploading is enabled; true = extracted files in the lookup scope are uploaded too, with the
+  # same upload settings as the submitted file. Uploaded files are public.
+  - name: upload_extracted
+    type: bool
+    value: false
+    default: false
 
 heuristics:
+  # Heuristics 1, 2, 3, 6, 7, 8, 10 and 11 were retired in October 2026 because they repeated Hybrid
+  # Analysis's verdict or scored generic traits as malicious. Their IDs stay reserved.
   - heur_id: 1
-    name: Critical Threat Score
-    description: The sample received a critical threat score (>=85) from Hybrid Analysis
-    filetype: "*"
-    score: 1000
-    attack_id: ["T1204"]
+    name: "Retired: Critical Threat Score"
+    description: Retired; the threat score is shown in the summary and scored through the verdict.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 2
-    name: High Threat Score
-    description: The sample received a high threat score (70-84) from Hybrid Analysis
-    filetype: "*"
-    score: 750
-    attack_id: ["T1204"]
+    name: "Retired: High Threat Score"
+    description: Retired; the threat score is shown in the summary and scored through the verdict.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 3
-    name: High AV Detection Rate
-    description: The sample was detected as malicious by multiple antivirus engines (>30)
-    filetype: "*"
-    score: 1000
-    attack_id: ["T1204"]
+    name: "Retired: High AV Detection Rate"
+    description: Retired; the AV detection rate is shown in the summary and part of the verdict.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 4
     name: Malicious Memory Analysis
-    description: CrowdStrike AI detected malicious behavior in process memory
-    filetype: "*"
+    description: CrowdStrike AI classified process memory from the analysis as malicious.
+    filetype: ".*"
     score: 1000
-    attack_id: ["T1055"]
 
   - heur_id: 5
     name: Suspicious Memory Analysis
-    description: CrowdStrike AI detected suspicious behavior in process memory
-    filetype: "*"
+    description: CrowdStrike AI classified process memory from the analysis as suspicious.
+    filetype: ".*"
     score: 500
-    attack_id: ["T1055"]
 
   - heur_id: 6
-    name: Multiple MITRE ATT&CK Techniques
-    description: The sample triggered multiple MITRE ATT&CK techniques with malicious indicators
-    filetype: "*"
-    score: 750
-    attack_id: ["T1204"]
+    name: "Retired: Multiple MITRE ATT&CK Techniques"
+    description: Retired; ATT&CK IDs are attached to heuristics 13 and 14.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 7
-    name: High Signature Count
-    description: The sample triggered a large number of behavioral signatures (>100)
-    filetype: "*"
-    score: 500
-    attack_id: ["T1204"]
+    name: "Retired: High Signature Count"
+    description: Retired; the count included informative signatures.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 8
-    name: Known Malware Family
-    description: The sample was identified as belonging to a known malware family
-    filetype: "*"
-    score: 1000
-    attack_id: ["T1204"]
+    name: "Retired: Known Malware Family"
+    description: Retired; the family is shown in the summary and tagged as attribution.family.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 9
     name: Malicious Verdict
-    description: The sample received a malicious verdict from Hybrid Analysis
-    filetype: "*"
+    description: Hybrid Analysis gave the sample a malicious verdict.
+    filetype: ".*"
     score: 1000
-    attack_id: ["T1204"]
 
   - heur_id: 10
-    name: Malicious Behavior
-    description: The sample exhibited malicious behavior based on behavioral signatures
-    filetype: "*"
-    score: 1000
-    attack_id: ["T1204"]
+    name: "Retired: Malicious Behavior"
+    description: Retired; replaced by heuristic 13.
+    filetype: ".*"
+    score: 0
 
   - heur_id: 11
-    name: Suspicious Behavior
-    description: The sample exhibited suspicious behavior based on behavioral signatures
-    filetype: "*"
-    score: 500
-    attack_id: ["T1204"]
+    name: "Retired: Suspicious Behavior"
+    description: Retired; replaced by heuristic 14.
+    filetype: ".*"
+    score: 0
 
-config:
-  api_key:
-    type: str
-    value: ""
-    description: API key for Hybrid Analysis
+  - heur_id: 12
+    name: Suspicious Verdict
+    description: Hybrid Analysis gave the sample a suspicious verdict.
+    filetype: ".*"
+    score: 300
 
-  base_url:
-    type: str
-    value: "https://hybrid-analysis.com/api/v2"
-    description: Base URL for Hybrid Analysis API
-    
-  enable_debug_logging:
-    type: bool
-    value: false
-    description: Enable detailed debug logging to file and stdout
+  - heur_id: 13
+    name: Malicious-level Behaviour Signatures
+    description: >-
+      Behaviour signatures Hybrid Analysis rates malicious, attached by Hybrid Analysis
+      identifier with their ATT&CK IDs. Each adds 100, at most 500, because Hybrid Analysis
+      also rates generic traits of benign files this way (statically linked binaries, links
+      to executables).
+    filetype: ".*"
+    score: 100
+    max_score: 500
+
+  - heur_id: 14
+    name: Suspicious-level Behaviour Signatures
+    description: >-
+      Behaviour signatures Hybrid Analysis rates suspicious, attached by Hybrid Analysis
+      identifier with their ATT&CK IDs. Not scored: they describe common traits such as
+      packing or system queries.
+    filetype: ".*"
+    score: 0
 
 docker_config:
+  image: ghcr.io/boredchilada/al4-hybridanalysis:$SERVICE_TAG
+  cpu_cores: 0.25
+  ram_mb: 512
   allow_internet_access: true
-  image: ghcr.io/boredchilada/al4-hybridanalysis:4.7.0.3
-  cpu_cores: 1
-  ram_mb: 1024
